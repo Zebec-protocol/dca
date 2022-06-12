@@ -1,0 +1,43 @@
+{
+  "name": "@zebec-protocol/dca",
+  "version": "1.0.0",
+  "description": "A client library to interact with Zebec DCA Program in solana blockchain",
+  "main": "./dist/index.js",
+  "scripts": {
+    "start": "ts-node .",
+    "build": "npm run clean; tsc",
+    "clean": "rm -rf ./dist",
+    "publish": "npm publish --access public",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zebec-protocol/dca.git"
+  },
+  "keywords": [
+    "dca",
+    "dollar cost averaging",
+    "solana",
+    "zbc",
+    "zebec",
+    "zebec protocol"
+  ],
+  "author": "Zebec Protocol | Ashish Sapkota",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Zebec-protocol/dca/issues"
+  },
+  "homepage": "https://github.com/Zebec-protocol/dca#readme",
+  "dependencies": {
+    "@solana/spl-token": "^0.2.0",
+    "@solana/web3.js": "^1.44.0",
+    "axios": "^0.27.2",
+    "bignumber.js": "^9.0.2",
+    "bn.js": "^5.2.1",
+    "borsh": "^0.7.0",
+    "buffer": "^6.0.3"
+  },
+  "devDependencies": {
+    "typescript": "^4.7.3"
+  }
+}
