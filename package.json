@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "description": "A client library to interact with Zebec DCA Program in solana blockchain",
   "main": "./dist/index.js",
+  "types": "",
   "scripts": {
-    "start": "ts-node .",
-    "build": "npm run clean; tsc",
+    "start": "ts-node ./src",
+    "build": "npm run clean; tsc -p .",
     "clean": "rm -rf ./dist",
     "publish": "npm publish --access public",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --check-leaks -r tsconfig-paths/register -r ts-node/register \"./test/**/*.spec.ts\""
   },
   "repository": {
     "type": "git",
@@ -38,6 +39,13 @@
     "buffer": "^6.0.3"
   },
   "devDependencies": {
+    "@types/bn.js": "^5.1.0",
+    "@types/chai": "^4.3.1",
+    "@types/mocha": "^9.1.1",
+    "chai": "^4.3.6",
+    "mocha": "^10.0.0",
+    "ts-node": "^10.8.1",
+    "tsconfig-paths": "^4.0.0",
     "typescript": "^4.7.3"
   }
 }
