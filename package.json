@@ -30,6 +30,7 @@
   },
   "homepage": "https://github.com/Zebec-protocol/dca#readme",
   "dependencies": {
+    "@raydium-io/raydium-sdk": "^1.1.0-beta.2",
     "@solana/spl-token": "^0.2.0",
     "@solana/web3.js": "^1.44.0",
     "axios": "^0.27.2",
