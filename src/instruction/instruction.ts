@@ -1,86 +1,27 @@
-import { AccountMeta, PublicKey, sendAndConfirmRawTransaction, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction } from "@solana/web3.js";
+import {
+    PublicKey,
+    SystemProgram,
+    SYSVAR_RENT_PUBKEY,
+    TransactionInstruction,
+} from "@solana/web3.js";
+import {
+    ASSOCIATED_TOKEN_PROGRAM_ID,
+    TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+import {
+    DepositSolData,
+    DepositTokenData,
+    FundSolData,
+    FundTokenData,
+    InitializeData,
+    SwapFromSolData,
+    SwapToSolData,
+    WithdrawSolData,
+    WithdrawTokenData,
+} from "./data";
+import { AccountMetaFactory } from "../utils";
+import { DCA_PROGRAM_ID } from "../constants"
 import BN from "bn.js";
-import { DepositSolData, DepositTokenData, FundSolData, FundTokenData, InitializeData, SwapFromSolData, SwapToSolData, WithdrawSolData, WithdrawTokenData } from "./instructionData";
-import { AccountMetaFactory } from "./utils";
-import { DCA_PROGRAM_ID } from "./constants"
-import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, } from "@solana/spl-token";
-
-type BaseInstructionParams = {
-    source: PublicKey,
-    vault: PublicKey,
-    dcaAccount: PublicKey,
-}
-
-type DepositTokenInstructionParam = BaseInstructionParams & {
-    mint: PublicKey,
-    nativeMint: PublicKey,
-    sourceTokenAccount: PublicKey,
-    vaultTokenAccount: PublicKey,
-    vaultNativeMintAccount: PublicKey,
-    amount: BN
-}
-
-type DepositSolInstructionParam = DepositTokenInstructionParam;
-
-type InitializeInstructionParam = BaseInstructionParams & {
-    startTime: BN,
-    dcaAmount: BN,
-    dcaTime: BN,
-    minimumAmountOut: BN
-}
-
-type SwapFromSolInstructionParam = BaseInstructionParams & {
-    liquidityProgramId: PublicKey,
-    amm: PublicKey,
-    ammAuthority: PublicKey,
-    ammOpenOrder: PublicKey,
-    ammTargetOrder: PublicKey,
-    poolCoinToken: PublicKey,
-    poolPcToken: PublicKey,
-    serumMarketProgramId: PublicKey,
-    serumMarket: PublicKey,
-    serumBids: PublicKey,
-    serumAsk: PublicKey,
-    serumEventQueue: PublicKey,
-    serumCoinVault: PublicKey,
-    serumPcVault: PublicKey,
-    serumVaultSigner: PublicKey,
-    vaultTokenAccount: PublicKey,
-    vaultNativeMintAccount: PublicKey,
-    mint: PublicKey,
-    nativeMint: PublicKey,
-    minimumAmountOut: BN,
-}
-
-type SwapToSolInstructionParam = SwapFromSolInstructionParam;
-
-type WithdrawSolInstructionParam = BaseInstructionParams & {
-    mint: PublicKey,
-    nativeMint: PublicKey,
-    sourceTokenAccount: PublicKey,
-    sourceNativeMint: PublicKey,
-    vaultTokenAccount: PublicKey,
-    vaultNativeMintAccount: PublicKey,
-    transferAmount: BN
-}
-
-type WithdrawTokenInstructionParam = BaseInstructionParams & {
-    mint: PublicKey,
-    sourceTokenAccount: PublicKey,
-    vaultTokenAccount: PublicKey,
-    transferAmount: BN
-}
-
-type FundTokenInstructionParam = WithdrawTokenInstructionParam;
-
-type FundSolInstructionParam = BaseInstructionParams & {
-    mint: PublicKey,
-    nativeMint: PublicKey,
-    sourceTokenAccount: PublicKey,
-    vaultTokenAccount: PublicKey,
-    vaultNativeMintAccount: PublicKey,
-    transferAmount: BN
-}
 
 /**
  * The DCA program instruction factory class. 
@@ -91,20 +32,17 @@ export class DcaInstruction {
      * Generate transaction instruction that deposit token to DCA vault
      */
     static depositToken(
-        {
-            source,
-            vault,
-            mint,
-            nativeMint,
-            sourceTokenAccount,
-            vaultTokenAccount,
-            vaultNativeMintAccount,
-            dcaAccount,
-            amount
-        }: DepositTokenInstructionParam
+        source: PublicKey,
+        vault: PublicKey,
+        mint: PublicKey,
+        nativeMint: PublicKey,
+        sourceTokenAccount: PublicKey,
+        vaultTokenAccount: PublicKey,
+        vaultNativeMintAccount: PublicKey,
+        dcaAccount: PublicKey,
+        amount: BN
     ) {
-        const data = new DepositTokenData({ amount: amount }).encode();
-
+        const data = new DepositTokenData(amount).encode();
         const keys = [
             AccountMetaFactory.newWritable(source, true),
             AccountMetaFactory.newWritable(vault, false),
@@ -119,7 +57,6 @@ export class DcaInstruction {
             AccountMetaFactory.newReadonly(ASSOCIATED_TOKEN_PROGRAM_ID, false),
             AccountMetaFactory.newWritable(dcaAccount, true),
         ];
-
         return new TransactionInstruction({
             keys: keys,
             programId: DCA_PROGRAM_ID,
@@ -131,19 +68,17 @@ export class DcaInstruction {
     * Generate transaction instruction that deposit native token to DCA vault
     */
     static depositSol(
-        {
-            source,
-            vault,
-            mint,
-            nativeMint,
-            sourceTokenAccount,
-            vaultNativeMintAccount,
-            vaultTokenAccount,
-            dcaAccount,
-            amount
-        }: DepositSolInstructionParam
+        source: PublicKey,
+        vault: PublicKey,
+        mint: PublicKey,
+        nativeMint: PublicKey,
+        sourceTokenAccount: PublicKey,
+        vaultNativeMintAccount: PublicKey,
+        vaultTokenAccount: PublicKey,
+        dcaAccount: PublicKey,
+        amount: BN
     ) {
-        const data = new DepositSolData({ amount: amount }).encode();
+        const data = new DepositSolData(amount).encode();
         const keys = [
             AccountMetaFactory.newWritable(source, true),
             AccountMetaFactory.newWritable(vault, false),
@@ -169,22 +104,20 @@ export class DcaInstruction {
      * Generate transaction instruction that intialize the swap process
      */
     static initialize(
-        {
-            source,
-            vault,
-            dcaAccount,
+        source: PublicKey,
+        vault: PublicKey,
+        dcaAccount: PublicKey,
+        startTime: BN,
+        dcaAmount: BN,
+        dcaTime: BN,
+        minimumAmountOut: BN
+    ) {
+        const data = new InitializeData(
             startTime,
             dcaAmount,
             dcaTime,
             minimumAmountOut
-        }: InitializeInstructionParam
-    ) {
-        const data = new InitializeData({
-            startTime: startTime,
-            dcaAmount: dcaAmount,
-            dcaTime: dcaTime,
-            minimumAmountOut: minimumAmountOut
-        }).encode();
+        ).encode();
         const keys = [
             AccountMetaFactory.newWritable(source, true),
             AccountMetaFactory.newWritable(vault, false),
@@ -202,33 +135,31 @@ export class DcaInstruction {
      * Generate transaction instruction that swap token to sol
      */
     static swapToSol(
-        {
-            liquidityProgramId,
-            amm,
-            ammAuthority,
-            ammOpenOrder,
-            ammTargetOrder,
-            poolCoinToken,
-            poolPcToken,
-            serumMarketProgramId,
-            serumMarket,
-            serumBids,
-            serumAsk,
-            serumEventQueue,
-            serumCoinVault,
-            serumPcVault,
-            serumVaultSigner,
-            vault,
-            vaultNativeMintAccount,
-            vaultTokenAccount,
-            mint,
-            source,
-            dcaAccount,
-            nativeMint,
-            minimumAmountOut
-        }: SwapToSolInstructionParam
+        liquidityProgramId: PublicKey,
+        amm: PublicKey,
+        ammAuthority: PublicKey,
+        ammOpenOrder: PublicKey,
+        ammTargetOrder: PublicKey,
+        poolCoinToken: PublicKey,
+        poolPcToken: PublicKey,
+        serumMarketProgramId: PublicKey,
+        serumMarket: PublicKey,
+        serumBids: PublicKey,
+        serumAsk: PublicKey,
+        serumEventQueue: PublicKey,
+        serumCoinVault: PublicKey,
+        serumPcVault: PublicKey,
+        serumVaultSigner: PublicKey,
+        vault: PublicKey,
+        vaultNativeMintAccount: PublicKey,
+        vaultTokenAccount: PublicKey,
+        mint: PublicKey,
+        source: PublicKey,
+        dcaAccount: PublicKey,
+        nativeMint: PublicKey,
+        minimumAmountOut: BN
     ) {
-        const data = new SwapToSolData({ minimumAmountOut: minimumAmountOut }).encode();
+        const data = new SwapToSolData(minimumAmountOut).encode();
         const keys = [
             // amm liquidity pool (raydium)
             AccountMetaFactory.newReadonly(liquidityProgramId, false),
@@ -272,33 +203,31 @@ export class DcaInstruction {
      * Generate transaction instruction that swap token from sol
      */
     static swapFromSol(
-        {
-            liquidityProgramId,
-            amm,
-            ammAuthority,
-            ammOpenOrder,
-            ammTargetOrder,
-            poolCoinToken,
-            poolPcToken,
-            serumMarketProgramId,
-            serumMarket,
-            serumBids,
-            serumAsk,
-            serumEventQueue,
-            serumCoinVault,
-            serumPcVault,
-            serumVaultSigner,
-            vault,
-            vaultNativeMintAccount,
-            vaultTokenAccount,
-            mint,
-            source,
-            dcaAccount,
-            nativeMint,
-            minimumAmountOut
-        }: SwapFromSolInstructionParam
+        liquidityProgramId: PublicKey,
+        amm: PublicKey,
+        ammAuthority: PublicKey,
+        ammOpenOrder: PublicKey,
+        ammTargetOrder: PublicKey,
+        poolCoinToken: PublicKey,
+        poolPcToken: PublicKey,
+        serumMarketProgramId: PublicKey,
+        serumMarket: PublicKey,
+        serumBids: PublicKey,
+        serumAsk: PublicKey,
+        serumEventQueue: PublicKey,
+        serumCoinVault: PublicKey,
+        serumPcVault: PublicKey,
+        serumVaultSigner: PublicKey,
+        vault: PublicKey,
+        vaultNativeMintAccount: PublicKey,
+        vaultTokenAccount: PublicKey,
+        mint: PublicKey,
+        source: PublicKey,
+        dcaAccount: PublicKey,
+        nativeMint: PublicKey,
+        minimumAmountOut: BN
     ) {
-        const data = new SwapFromSolData({ minimumAmountOut: minimumAmountOut }).encode();
+        const data = new SwapFromSolData(minimumAmountOut).encode();
         const keys = [
             // amm liquidity pool (raydium)
             AccountMetaFactory.newReadonly(liquidityProgramId, false),
@@ -341,17 +270,16 @@ export class DcaInstruction {
     /**
      * Generate Transaction Instruction that withdraws non-native token from DCA vault
      */
-    static withdrawToken({
-        source,
-        vault,
-        mint,
-        sourceTokenAccount,
-        vaultTokenAccount,
-        dcaAccount,
-        transferAmount
-    }: WithdrawTokenInstructionParam
+    static withdrawToken(
+        source: PublicKey,
+        vault: PublicKey,
+        mint: PublicKey,
+        sourceTokenAccount: PublicKey,
+        vaultTokenAccount: PublicKey,
+        dcaAccount: PublicKey,
+        transferAmount: BN
     ) {
-        const data = new WithdrawTokenData({ transferAmount }).encode();
+        const data = new WithdrawTokenData(transferAmount).encode();
         const keys = [
             AccountMetaFactory.newWritable(source, true),
             AccountMetaFactory.newWritable(vault, false),
@@ -364,7 +292,6 @@ export class DcaInstruction {
             AccountMetaFactory.newReadonly(ASSOCIATED_TOKEN_PROGRAM_ID, false),
             AccountMetaFactory.newWritable(dcaAccount, false),
         ];
-
         return new TransactionInstruction({
             keys: keys,
             programId: DCA_PROGRAM_ID,
@@ -376,20 +303,18 @@ export class DcaInstruction {
      * Generate Transaction Instruction that withdraws native token from DCA vault
      */
     static withdrawSol(
-        {
-            source,
-            vault,
-            mint,
-            sourceTokenAccount,
-            vaultTokenAccount,
-            dcaAccount,
-            nativeMint,
-            vaultNativeMintAccount,
-            sourceNativeMint,
-            transferAmount
-        }: WithdrawSolInstructionParam
+        source: PublicKey,
+        vault: PublicKey,
+        mint: PublicKey,
+        sourceTokenAccount: PublicKey,
+        vaultTokenAccount: PublicKey,
+        dcaAccount: PublicKey,
+        nativeMint: PublicKey,
+        vaultNativeMintAccount: PublicKey,
+        sourceNativeMint: PublicKey,
+        transferAmount: BN
     ) {
-        const data = new WithdrawSolData({ transferAmount: transferAmount }).encode();
+        const data = new WithdrawSolData(transferAmount).encode();
         const keys = [
             AccountMetaFactory.newWritable(source, true),
             AccountMetaFactory.newWritable(vault, false),
@@ -417,17 +342,15 @@ export class DcaInstruction {
      * Generate transaction instruction that fund token in initialized dca
      */
     static fundToken(
-        {
-            source,
-            vault,
-            mint,
-            sourceTokenAccount,
-            vaultTokenAccount,
-            dcaAccount,
-            transferAmount
-        }: FundTokenInstructionParam
+        source: PublicKey,
+        vault: PublicKey,
+        mint: PublicKey,
+        sourceTokenAccount: PublicKey,
+        vaultTokenAccount: PublicKey,
+        dcaAccount: PublicKey,
+        transferAmount: BN
     ) {
-        const data = new FundTokenData({ transferAmount: transferAmount }).encode();
+        const data = new FundTokenData(transferAmount).encode();
         const keys = [
             AccountMetaFactory.newWritable(source, true),
             AccountMetaFactory.newWritable(vault, false),
@@ -451,19 +374,17 @@ export class DcaInstruction {
      * Generate transaction instruction that sol to intialized dca process
      */
     static fundSol(
-        {
-            source,
-            vault,
-            mint,
-            nativeMint,
-            sourceTokenAccount,
-            vaultNativeMintAccount,
-            vaultTokenAccount,
-            dcaAccount,
-            transferAmount
-        }: FundSolInstructionParam
+        source: PublicKey,
+        vault: PublicKey,
+        mint: PublicKey,
+        nativeMint: PublicKey,
+        sourceTokenAccount: PublicKey,
+        vaultNativeMintAccount: PublicKey,
+        vaultTokenAccount: PublicKey,
+        dcaAccount: PublicKey,
+        transferAmount: BN
     ) {
-        const data = new FundSolData({ transferAmount: transferAmount }).encode();
+        const data = new FundSolData(transferAmount).encode();
         const keys = [
             AccountMetaFactory.newWritable(source, true),
             AccountMetaFactory.newWritable(vault, false),
