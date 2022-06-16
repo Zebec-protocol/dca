@@ -4,7 +4,7 @@ import { Commitment, Connection, PublicKey } from "@solana/web3.js";
 export async function getMintInfo(
     connection: Connection,
     address: PublicKey,
-    commitment: Commitment,
+    commitment?: Commitment,
     programId = TOKEN_PROGRAM_ID
 ) {
     const info = await connection.getAccountInfo(address, commitment);
