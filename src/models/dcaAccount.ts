@@ -61,7 +61,7 @@ export class DcaAccount {
     }
 
     /**
-     * The unix timestamp from which the latest swap will be performed.
+     * The unix timestamp from which the last swap is performed.
      */
     public get startTime(): BN {
         return this._startTime;
@@ -84,17 +84,22 @@ export class DcaAccount {
     /**
      * The state signifies whether the dca process has been initialized or not.
      */
-    public get state(): number {
-        return this._state;
+    public get state(): boolean {
+        return this._state === 1;
     }
 
     /**
-     * 
+     * The flag tells whether to swap from sol to mint or mint to sol.
      */
-    public get flag(): number {
-        return this._flag;
+    public get flag(): "SolToMint" | "MintToSol" | undefined {
+        if (this._flag === 1) return "SolToMint";
+        else if (this._flag === 2) return "MintToSol";
+        else return undefined;
     }
 
+    /**
+     * The minimum amount out expected from the swap.
+     */
     public get minimumAmountOut(): BN {
         return this._minimumAmountOut;
     }
