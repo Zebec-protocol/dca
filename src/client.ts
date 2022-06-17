@@ -1,21 +1,49 @@
-import { Cluster, clusterApiUrl, Commitment, Connection, Keypair, PublicKey, sendAndConfirmRawTransaction, Transaction } from "@solana/web3.js";
-import { BaseSignerWalletAdapter } from "@solana/wallet-adapter-base";
-import BigNumber from "bignumber.js";
-import { findAssociatedTokenAddress, findVaultAddress, getMintInfo } from "./utils";
+import {
+    Cluster,
+    clusterApiUrl,
+    Commitment,
+    Connection,
+    Keypair,
+    LAMPORTS_PER_SOL,
+    PublicKey,
+    sendAndConfirmRawTransaction,
+    Transaction
+} from "@solana/web3.js";
 import { NATIVE_MINT } from "@solana/spl-token";
-import { convertToLamports } from "./utils/convertToLamports";
-import { DcaInstruction } from "./instruction";
+import {
+    EventEmitter,
+    SignerWalletAdapterProps,
+    WalletAdapterEvents,
+    WalletAdapterProps
+} from "@solana/wallet-adapter-base";
+import BigNumber from "bignumber.js";
 import { BN } from "bn.js";
+import {
+    Liquidity,
+    Percent,
+    Token,
+    TokenAmount
+} from "@raydium-io/raydium-sdk";
+import {
+    fetchPoolKeys,
+    findAssociatedTokenAddress,
+    findPoolIdByBaseAndQuoteMint,
+    findVaultAddress,
+    getMintInfo,
+    convertToLamports
+} from "./utils";
+import { DcaInstruction } from "./instruction";
+import { DcaAccount } from "./models/dca-account";
 
-
+interface WalletAdapter extends WalletAdapterProps, EventEmitter<WalletAdapterEvents>, SignerWalletAdapterProps { }
 
 export class DcaClient {
     private _connection: Connection;
     private _commitment: Commitment;
-    private _walletProvider: BaseSignerWalletAdapter;
+    private _wallet: WalletAdapter;
 
     constructor(
-        walletProvider: BaseSignerWalletAdapter,
+        walletProvider: WalletAdapter,
         cluster?: Cluster,
         commitment?: Commitment
     ) {
@@ -23,16 +51,16 @@ export class DcaClient {
         this._connection = cluster ?
             new Connection(clusterApiUrl(cluster)) :
             new Connection(clusterApiUrl("mainnet-beta"));
-        this._walletProvider = walletProvider;
+        this._wallet = walletProvider;
     }
 
     private async signAndSendTransaction(txn: Transaction): Promise<string> {
-        const signedTxn = await this._walletProvider.signTransaction(txn);
+        const signedTxn = await this._wallet.signTransaction(txn);
         return await sendAndConfirmRawTransaction(
             this._connection,
             signedTxn.serialize(),
             {
-                commitment: "confirmed",
+                commitment: this._commitment,
                 skipPreflight: false,
                 preflightCommitment: "processed"
             }
@@ -42,33 +70,31 @@ export class DcaClient {
     /**
      * Deposit non-native token in dca program vault
      */
-    async depositToken(this._connection: Connection, owner: PublicKey, mint: PublicKey, amount: BigNumber) {
+    async depositToken(owner: PublicKey, mint: PublicKey, amount: BigNumber) {
         try {
             let dcaDataAccount = Keypair.generate();
-            const ownerAddress = new PublicKey(owner);
-            const mintAddress = new PublicKey(mint);
-            const vaultAddress = await findVaultAddress(ownerAddress, dcaDataAccount.publicKey);
-            constownerTokenAddress = await findAssociatedTokenAddress(ownerAddress, mintAddress);
-            const vaultTokenAddress = await findAssociatedTokenAddress(vaultAddress, mintAddress);
-            const vaultNativeMintAddress = await findAssociatedTokenAddress(vaultAddress, NATIVE_MINT);
+            const vault = await findVaultAddress(owner, dcaDataAccount.publicKey);
+            const ownerTokenAccount = await findAssociatedTokenAddress(owner, mint);
+            const vaultTokenAccount = await findAssociatedTokenAddress(vault, mint);
+            const vaultNativeMintAddress = await findAssociatedTokenAddress(vault, NATIVE_MINT);
 
-            const mintInfo = await getMintInfo(this._connection, mintAddress);
+            const mintInfo = await getMintInfo(this._connection, mint);
             const _amount = convertToLamports(amount, mintInfo.decimals);
 
             let txn = new Transaction()
                 .add(DcaInstruction.depositToken(
-                    ownerAddress,
-                    vaultAddress,
-                    mintAddress,
+                    owner,
+                    vault,
+                    mint,
                     NATIVE_MINT,
-                    ownerTokenAddress,
-                    vaultTokenAddress,
+                    ownerTokenAccount,
+                    vaultTokenAccount,
                     vaultNativeMintAddress,
                     dcaDataAccount.publicKey,
                     _amount
                 ));
 
-            txn.feePayer = ownerAddress;
+            txn.feePayer = owner;
             txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
             txn.partialSign(dcaDataAccount);
 
@@ -78,7 +104,50 @@ export class DcaClient {
                 status: "success",
                 data: {
                     signature: signature,
-                    dcaDataAddress: dcaDataAccount.publicKey.toBase58()
+                    dcaData: dcaDataAccount.publicKey.toBase58()
+                }
+            }
+        } catch (e) {
+            throw e;
+        }
+    }
+
+    /**
+ * Deposit sol in dca vault
+ */
+    async depositSol(owner: PublicKey, mint: PublicKey, amount: BigNumber) {
+        try {
+            let dcaDataAccount = Keypair.generate();
+            const vaultAddress = await findVaultAddress(owner, dcaDataAccount.publicKey);
+            const ownerTokenAccount = await findAssociatedTokenAddress(owner, mint);
+            const vaultTokenAccount = await findAssociatedTokenAddress(vaultAddress, mint);
+            const vaultNativeMintAddress = await findAssociatedTokenAddress(vaultAddress, NATIVE_MINT);
+
+            const _amount = convertToLamports(amount);
+
+            let txn = new Transaction()
+                .add(DcaInstruction.depositSol(
+                    owner,
+                    vaultAddress,
+                    mint,
+                    NATIVE_MINT,
+                    ownerTokenAccount,
+                    vaultNativeMintAddress,
+                    vaultTokenAccount,
+                    dcaDataAccount.publicKey,
+                    _amount
+                ));
+            txn.feePayer = owner;
+            txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
+            txn.partialSign(dcaDataAccount);
+
+            const signature = await this.signAndSendTransaction(txn);
+
+            return {
+                status: "success",
+                data: {
+                    signature: signature,
+                    dcaData: dcaDataAccount.publicKey.toBase58()
                 }
             }
         } catch (e) {
@@ -89,29 +158,26 @@ export class DcaClient {
     /**
      * Intialize dca process
      */
-    async initialize(this._connection: Connection, owner: PublicKey, mint: PublicKey, dcaData: PublicKey, startTime: BigNumber, dcaAmount: BigNumber, dcaTime: BigNumber) {
+    async initialize(owner: PublicKey, mint: PublicKey, dcaData: PublicKey, startTime: BigNumber, dcaAmount: BigNumber, dcaTime: BigNumber) {
         try {
-            const ownerAddress = new PublicKey(owner);
-            const mintAddress = new PublicKey(mint);
-            const dcaDataAddress = new PublicKey(dcaData);
-            const vaultAddress = await findVaultAddress(ownerAddress, dcaDataAddress);
+            const vault = await findVaultAddress(owner, dcaData);
             const _startTime = new BN(startTime.toFixed());
             const _dcaTime = new BN(dcaTime.toFixed());
-            const mintInfo = await getMintInfo(this._connection, mintAddress);
+            const mintInfo = await getMintInfo(this._connection, mint);
             const _dcaAmount = convertToLamports(dcaAmount, mintInfo.decimals);
             const minimumAmountOut = convertToLamports(dcaAmount, mintInfo.decimals);
 
             let txn = new Transaction()
                 .add(DcaInstruction.initialize(
-                    ownerAddress,
-                    vaultAddress,
-                    dcaDataAddress,
+                    owner,
+                    vault,
+                    dcaData,
                     _startTime,
                     _dcaAmount,
                     _dcaTime,
                     minimumAmountOut
                 ));
-            txn.feePayer = ownerAddress;
+            txn.feePayer = owner;
             txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
 
             const signature = await this.signAndSendTransaction(txn);
@@ -120,51 +186,6 @@ export class DcaClient {
                 status: "success",
                 data: {
                     signature: signature,
-                }
-            }
-        } catch (e) {
-            throw e;
-        }
-    }
-
-    /**
-     * Deposit sol in dca vault
-     */
-    async depositSol(this._connection: Connection, owner: PublicKey, mint: PublicKey, amount: BigNumber) {
-        try {
-            let dcaDataAccount = Keypair.generate();
-            const ownerAddress = new PublicKey(owner);
-            const mintAddress = new PublicKey(mint);
-            const vaultAddress = await findVaultAddress(ownerAddress, dcaDataAccount.publicKey);
-            constownerTokenAddress = await findAssociatedTokenAddress(ownerAddress, mintAddress);
-            const vaultTokenAddress = await findAssociatedTokenAddress(vaultAddress, mintAddress);
-            const vaultNativeMintAddress = await findAssociatedTokenAddress(vaultAddress, NATIVE_MINT);
-
-            const _amount = convertToLamports(amount);
-
-            let txn = new Transaction()
-                .add(DcaInstruction.depositSol(
-                    ownerAddress,
-                    vaultAddress,
-                    mintAddress,
-                    NATIVE_MINT,
-                    ownerTokenAddress,
-                    vaultNativeMintAddress,
-                    vaultTokenAddress,
-                    dcaDataAccount.publicKey,
-                    _amount
-                ));
-            txn.feePayer = ownerAddress;
-            txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
-            txn.partialSign(dcaDataAccount);
-
-            const signature = await this.signAndSendTransaction(txn);
-
-            return {
-                status: "success",
-                data: {
-                    signature: signature,
-                    dcaDataAddress: dcaDataAccount.publicKey.toBase58()
                 }
             }
         } catch (e) {
@@ -177,26 +198,23 @@ export class DcaClient {
      */
     async withdrawToken(owner: PublicKey, mint: PublicKey, dcaData: PublicKey, amount: BigNumber) {
         try {
-            const ownerAddress = new PublicKey(owner);
-            const mintAddress = new PublicKey(mint);
-            const dcaDataAddress = new PublicKey(dcaData);
-            const vaultAddress = await findVaultAddress(ownerAddress, dcaDataAddress);
-            const ownerTokenAddress = await findAssociatedTokenAddress(ownerAddress, mintAddress);
-            const vaultTokenAddress = await findAssociatedTokenAddress(vaultAddress, mintAddress);
-            const mintInfo = await getMintInfo(this._connection, mintAddress);
+            const vaultAddress = await findVaultAddress(owner, dcaData);
+            const ownerTokenAccount = await findAssociatedTokenAddress(owner, mint);
+            const vaultTokenAddress = await findAssociatedTokenAddress(vaultAddress, mint);
+            const mintInfo = await getMintInfo(this._connection, mint);
             const transferAmount = convertToLamports(amount, mintInfo.decimals);
 
             let txn = new Transaction()
                 .add(DcaInstruction.withdrawToken(
-                    ownerAddress,
+                    owner,
                     vaultAddress,
-                    mintAddress,
-                    ownerTokenAddress,
+                    mint,
+                    ownerTokenAccount,
                     vaultTokenAddress,
-                    dcaDataAddress,
+                    dcaData,
                     transferAmount
                 ));
-            txn.feePayer = ownerAddress;
+            txn.feePayer = owner;
             txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
 
             const signature = await this.signAndSendTransaction(txn);
@@ -217,31 +235,27 @@ export class DcaClient {
      */
     async withdrawSol(owner: PublicKey, mint: PublicKey, dcaData: PublicKey, amount: BigNumber) {
         try {
-
-            const ownerAddress = new PublicKey(owner);
-            const mintAddress = new PublicKey(mint);
-            const dcaDataAddress = new PublicKey(dcaData);
-            const vaultAddress = await findVaultAddress(ownerAddress, dcaDataAddress);
-            const ownerTokenAddress = await findAssociatedTokenAddress(ownerAddress, mintAddress);
-            const ownerNativeMintAddress = await findAssociatedTokenAddress(ownerAddress, NATIVE_MINT);
-            const vaultTokenAddress = await findAssociatedTokenAddress(vaultAddress, mintAddress);
+            const vaultAddress = await findVaultAddress(owner, dcaData);
+            const ownerTokenAccount = await findAssociatedTokenAddress(owner, mint);
+            const ownerNativeMintAccount = await findAssociatedTokenAddress(owner, NATIVE_MINT);
+            const vaultTokenAddress = await findAssociatedTokenAddress(vaultAddress, mint);
             const vaultNativeMintAddress = await findAssociatedTokenAddress(vaultAddress, NATIVE_MINT);
             const transferAmount = convertToLamports(amount);
 
             let txn = new Transaction()
                 .add(DcaInstruction.withdrawSol(
-                    ownerAddress,
+                    owner,
                     vaultAddress,
-                    mintAddress,
-                    ownerTokenAddress,
+                    mint,
+                    ownerTokenAccount,
                     vaultTokenAddress,
-                    dcaDataAddress,
+                    dcaData,
                     NATIVE_MINT,
                     vaultNativeMintAddress,
-                    ownerNativeMintAddress,
+                    ownerNativeMintAccount,
                     transferAmount
                 ));
-            txn.feePayer = ownerAddress;
+            txn.feePayer = owner;
             txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
 
             const signature = await this.signAndSendTransaction(txn);
@@ -257,66 +271,107 @@ export class DcaClient {
         }
     }
 
-/**
- * Swap token from sol
- * @param {Connection} this._connection The this._connection The Connection of solana json rpc network
- * @param {string} owner The address of the owner who initialize dca
- * @param {string} mint The address of token mint
- * @param {string} dcaData The address of the account which store dca state
- * @param {string} poolId The address of the amm liquidity pool account
- */
-async function swapFromSol(this._connection, owner, mint, dcaData) {
-    try {
-        if (!this._connection || !owner || !mint || !dcaData) {
-            throw new ReferenceError("Missing arguments.");
+    /**
+     * Swap token from sol
+     */
+    async swapFromSol(owner: PublicKey, mint: PublicKey, dcaData: PublicKey) {
+        try {
+            const vault = await findVaultAddress(owner, dcaData);
+            const vaultNativeMintAccount = await findAssociatedTokenAddress(vault, NATIVE_MINT)
+            const vaultTokenAccount = await findAssociatedTokenAddress(vault, mint)
+            const poolKeyId = await findPoolIdByBaseAndQuoteMint(NATIVE_MINT, mint);
+            const poolKeys = await fetchPoolKeys(
+                this._connection,
+                new PublicKey(poolKeyId)
+            );
+            const poolInfo = await Liquidity.fetchInfo({ connection: this._connection, poolKeys });
+            const dcaInfo = await DcaAccount.getDcaAccountInfo(this._connection, dcaData);
+            if (dcaInfo.dcaAmount.toString() === "0") {
+                throw new Error("Dca amout is zero")
+            }
+            const amount = new BigNumber(dcaInfo.dcaAmount.toString())
+                .div(new BigNumber(LAMPORTS_PER_SOL));
+            const amountIn = new TokenAmount(
+                new Token(
+                    poolKeys.baseMint,
+                    poolInfo.baseDecimals
+                ),
+                amount.toFixed(),
+                false
+            )
+            const currencyOut = new Token(poolKeys.quoteMint, poolInfo.quoteDecimals);
+            const slippage = new Percent(5, 100);
+            const { amountOut, minAmountOut, currentPrice, executionPrice, priceImpact, fee }
+                = Liquidity.computeAmountOut({ poolKeys, poolInfo, amountIn, currencyOut, slippage, });
+
+            let txn = new Transaction()
+                .add(DcaInstruction.swapFromSol(
+                    poolKeys.programId,         // liquidityProgramId
+                    poolKeys.id,                // ammAddress
+                    poolKeys.authority,         // ammAuthorityAddress
+                    poolKeys.openOrders,        // ammOpenOrderAddress
+                    poolKeys.targetOrders,      // ammTargetOrderAddress
+                    poolKeys.baseVault,         // poolCoinTokenAddress
+                    poolKeys.quoteVault,        // poolPcTokenAddress
+                    poolKeys.marketProgramId,   // serumMarketProgramId
+                    poolKeys.marketId,          // serumMarketAddress
+                    poolKeys.marketBids,        // serumBidsAddress
+                    poolKeys.marketAsks,        // serumAskAddress
+                    poolKeys.marketEventQueue,  // serumEventQueueAddress
+                    poolKeys.marketBaseVault,   // serumCoinVaultAddress
+                    poolKeys.marketQuoteVault,  // serumVaultAddress
+                    poolKeys.marketAuthority,   // serumVaultSigner
+                    vault,
+                    vaultNativeMintAccount,
+                    vaultTokenAccount,
+                    mint,
+                    owner,
+                    dcaData,
+                    NATIVE_MINT,
+                    minAmountOut.raw
+                ));
+            txn.feePayer = owner;
+            txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
+
+            const signature = await this.signAndSendTransaction(txn);
+
+            return {
+                status: "success",
+                data: {
+                    signature: signature,
+                }
+            }
+        } catch (e) {
+            throw e;
         }
+    }
 
-        if (!(this._connection instanceof Connection) ||
-            typeof owner != "string" ||
-            typeof mint != "string" ||
-            typeof dcaData != "string"
-        ) {
-            throw new TypeError("Invalid argument type.");
-        }
-
-        const ownerAddress = new PublicKey(owner);
-        const mintAddress = new PublicKey(mint);
-        const dcaDataAddress = new PublicKey(dcaData);
-        const [vaultAddress,] = await findDcaDerivedAddress([ownerAddress.toBuffer(), dcaDataAddress.toBuffer()]);
-        const [vaultNativeMintAddress,] = await findAssociatedTokenAddress(vaultAddress, NATIVE_MINT)
-        const [vaultTokenAddress,] = await findAssociatedTokenAddress(vaultAddress, mintAddress)
-
-        const poolKeysList = await fetchAllPoolKeys();
-        if (poolKeysList.length === 0) throw new Error("Error in retreiving liquidity pool keys");
-
-        const keys = poolKeysList.find(el => el.quoteMint.includes(mint) &&
-            el.baseMint.includes(NATIVE_MINT.toBase58()));
-        if (!keys) throw new Error("No liquidity pool found.")
-        console.log(keys.id);
-        // SOL_USDT
-        // const POOL_ID = "384zMi9MbUKVUfkUdrnuMfWBwJR9gadSxYimuXeJ9DaJ";
-
+    /**
+     * Swap Token to Sol
+     */
+    async swapToSol(owner: PublicKey, mint: PublicKey, dcaData: PublicKey) {
+        const vault = await findVaultAddress(owner, dcaData);
+        const vaultTokenAccount = await findAssociatedTokenAddress(vault, mint);
+        const vaultNativeMintAccount = await findAssociatedTokenAddress(vault, NATIVE_MINT);
+        const poolKeyId = await findPoolIdByBaseAndQuoteMint(mint, NATIVE_MINT);
         const poolKeys = await fetchPoolKeys(
             this._connection,
-            new PublicKey(keys.id)
+            new PublicKey(poolKeyId)
         );
-        const poolInfo = await Liquidity.fetchInfo({ this._connection, poolKeys });
-
-        const dcaInfo = await DcaAccount.getDcaAccountInfo(this._connection, dcaDataAddress);
-
+        const poolInfo = await Liquidity.fetchInfo({ connection: this._connection, poolKeys });
+        const dcaInfo = await DcaAccount.getDcaAccountInfo(this._connection, dcaData);
         if (dcaInfo.dcaAmount.toString() === "0") {
-            throw new Error("Dca amout is zero")
+            throw new Error("Dca amount is zero")
         }
-
+        const mintInfo = await getMintInfo(this._connection, mint);
         const amount = new BigNumber(dcaInfo.dcaAmount.toString())
-            .div(new BigNumber(LAMPORTS_PER_SOL)); // todo : test this part for decimal output
-
+            .div(new BigNumber(10 ** mintInfo.decimals));
         const amountIn = new TokenAmount(
             new Token(
                 poolKeys.baseMint,
                 poolInfo.baseDecimals
             ),
-            amount.toFixed(),
+            amount.toString(),
             false
         )
         const currencyOut = new Token(poolKeys.quoteMint, poolInfo.quoteDecimals);
@@ -325,8 +380,8 @@ async function swapFromSol(this._connection, owner, mint, dcaData) {
             = Liquidity.computeAmountOut({ poolKeys, poolInfo, amountIn, currencyOut, slippage, });
 
         let txn = new Transaction()
-            .add(DcaInstruction.swapFromSol(
-                poolKeys.programId,         // liquidityProgramId
+            .add(DcaInstruction.swapToSol(
+                poolKeys.programId,
                 poolKeys.id,                // ammAddress
                 poolKeys.authority,         // ammAuthorityAddress
                 poolKeys.openOrders,        // ammOpenOrderAddress
@@ -341,16 +396,16 @@ async function swapFromSol(this._connection, owner, mint, dcaData) {
                 poolKeys.marketBaseVault,   // serumCoinVaultAddress
                 poolKeys.marketQuoteVault,  // serumVaultAddress
                 poolKeys.marketAuthority,   // serumVaultSigner
-                vaultAddress,
-                vaultNativeMintAddress,
-                vaultTokenAddress,
-                mintAddress,
-                ownerAddress,
-                dcaDataAddress,
+                vault,
+                vaultNativeMintAccount,
+                vaultTokenAccount,
+                mint,
+                owner,
+                dcaData,
                 NATIVE_MINT,
                 minAmountOut.raw
             ));
-        txn.feePayer = ownerAddress;
+        txn.feePayer = owner;
         txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
 
         const signature = await this.signAndSendTransaction(txn);
@@ -359,197 +414,85 @@ async function swapFromSol(this._connection, owner, mint, dcaData) {
             status: "success",
             data: {
                 signature: signature,
-            }
+            },
         }
-    } catch (e) {
-        throw e;
-    }
-}
-
-/**
- * Swap Token to Sol
- * @param {Connection} this._connection The this._connection The Connection of solana json rpc network
- * @param {string} owner The address of the owner who initialize dca
- * @param {string} mint The address of token mint
- * @param {string} dcaData The address of the account which store dca state
- * @param {string} poolId The address of the amm liquidity pool account
- */
-export async function swapToSol(this._connection, owner, mint, dcaData) {
-    if (!this._connection || !owner || !mint || !dcaData) {
-        throw new ReferenceError("Missing arguments.");
     }
 
-    if (!(this._connection instanceof Connection) ||
-        typeof owner != "string" ||
-        typeof mint != "string" ||
-        typeof dcaData != "string"
-    ) {
-        throw new TypeError("Invalid argument type.");
-    }
+    /**
+     * Fund non-native token to existing vault
+     */
+    async fundToken(owner: PublicKey, mint: PublicKey, dcaData: PublicKey, amount: BigNumber) {
+        try {
+            const vault = await findVaultAddress(owner, dcaData);
+            const ownerTokenAccount = await findAssociatedTokenAddress(owner, mint);
+            const vaultTokenAccount = await findAssociatedTokenAddress(vault, mint);
+            const mintInfo = await getMintInfo(this._connection, mint);
+            const transferAmount = convertToLamports(amount, mintInfo.decimals);
 
-    const ownerAddress = new PublicKey(owner);
-    const mintAddress = new PublicKey(mint);
-    const dcaDataAddress = new PublicKey(dcaData);
-    const [vaultAddress,] = await findDcaDerivedAddress([ownerAddress.toBuffer(), dcaDataAddress.toBuffer()]);
-    const [vaultTokenAddress,] = await findAssociatedTokenAddress(vaultAddress, mintAddress);
-    const [vaultNativeMintAddress,] = await findAssociatedTokenAddress(vaultAddress, NATIVE_MINT);
+            let txn = new Transaction()
+                .add(DcaInstruction.fundToken(
+                    owner,
+                    vault,
+                    mint,
+                    ownerTokenAccount,
+                    vaultTokenAccount,
+                    dcaData,
+                    transferAmount
+                ));
+            txn.feePayer = owner;
+            txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
 
-    const poolKeysList = await fetchAllPoolKeys();
-    if (poolKeysList.length === 0) throw new Error("Error in retreiving liquidity pool keys");
-    const keys = poolKeysList.find(el => el.quoteMint.includes(NATIVE_MINT) &&
-        el.baseMint.includes(mintAddress));
-    if (!keys) throw new Error("No liquidity pool found.")
-    console.log(keys.id);
+            const signature = await this.signAndSendTransaction(txn);
 
-    // RANDOM POOL
-    // const POOL_ID = "HeD1cekRWUNR25dcvW8c9bAHeKbr1r7qKEhv7pEegr4f";
-
-    const poolKeys = await fetchPoolKeys(
-        this._connection,
-        new PublicKey(keys.id)
-    );
-    const poolInfo = await Liquidity.fetchInfo({ this._connection, poolKeys });
-
-    const dcaInfo = await DcaAccount.getDcaAccountInfo(this._connection, dcaDataAddress);
-    if (dcaInfo.dcaAmount === "0" || dcaInfo.dcaAmount === 0) {
-        throw new Error("Dca amount is zero")
-    }
-
-    const mintInfo = await getMintInfo(this._connection, mintAddress);
-
-    const amount = new BigNumber(dcaInfo.dcaAmount.toString())
-        .div(new BigNumber(10 ** mintInfo.decimals));
-
-    const amountIn = new TokenAmount(
-        new Token(
-            poolKeys.baseMint,
-            poolInfo.baseDecimals
-        ),
-        amount.toString(),
-        false
-    )
-    const currencyOut = new Token(poolKeys.quoteMint, poolInfo.quoteDecimals);
-    const slippage = new Percent(5, 100);
-    const { amountOut, minAmountOut, currentPrice, executionPrice, priceImpact, fee }
-        = Liquidity.computeAmountOut({ poolKeys, poolInfo, amountIn, currencyOut, slippage, });
-
-    let txn = new Transaction()
-        .add(DcaInstruction.swapToSol(
-            poolKeys.programId,
-            poolKeys.id,                // ammAddress
-            poolKeys.authority,         // ammAuthorityAddress
-            poolKeys.openOrders,        // ammOpenOrderAddress
-            poolKeys.targetOrders,      // ammTargetOrderAddress
-            poolKeys.baseVault,         // poolCoinTokenAddress
-            poolKeys.quoteVault,        // poolPcTokenAddress
-            poolKeys.marketProgramId,   // serumMarketProgramId
-            poolKeys.marketId,          // serumMarketAddress
-            poolKeys.marketBids,        // serumBidsAddress
-            poolKeys.marketAsks,        // serumAskAddress
-            poolKeys.marketEventQueue,  // serumEventQueueAddress
-            poolKeys.marketBaseVault,   // serumCoinVaultAddress
-            poolKeys.marketQuoteVault,  // serumVaultAddress
-            poolKeys.marketAuthority,   // serumVaultSigner
-            vaultAddress,
-            vaultNativeMintAddress,
-            vaultTokenAddress,
-            mintAddress,
-            ownerAddress,
-            dcaDataAddress,
-            NATIVE_MINT,
-            minAmountOut.raw
-        ));
-    txn.feePayer = ownerAddress;
-    txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
-
-    const signature = await this.signAndSendTransaction(txn);
-
-    return {
-        status: "success",
-        data: {
-            signature: signature,
-        },
-    }
-}
-
-/**
- * Fund non-native token to existing vault
- */
-async fundToken(owner: PublicKey, mint: PublicKey, dcaData: PublicKey, amount: BigNumber) {
-    try {
-        const vaultAddress = await findVaultAddress(ownerAddress, dcaDataAddress);
-        const ownerTokenAddress = await findAssociatedTokenAddress(ownerAddress, mintAddress);
-        const vaultTokenAddress = await findAssociatedTokenAddress(vaultAddress, mintAddress);
-        const mintInfo = await getMintInfo(this._connection, mintAddress);
-        const transferAmount = convertToLamports(amount, mintInfo.decimals);
-
-        let txn = new Transaction()
-            .add(DcaInstruction.fundToken(
-                ownerAddress,
-                vaultAddress,
-                mintAddress,
-                ownerTokenAddress,
-                vaultTokenAddress,
-                dcaDataAddress,
-                transferAmount
-            ));
-        txn.feePayer = ownerAddress;
-        txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
-
-        const signature = await this.signAndSendTransaction(txn);
-        return {
-            status: "success",
-            data: {
-                signature: signature,
+            return {
+                status: "success",
+                data: {
+                    signature: signature,
+                }
             }
+        } catch (e) {
+            throw e;
         }
-    } catch (e) {
-        throw e;
     }
-}
 
-/**
- * Fund native token to existing vault
- */
-async  fundSol(owner, mint, dcaData, amount) {
-    try {
+    /**
+     * Fund native token to existing vault
+     */
+    async fundSol(owner: PublicKey, mint: PublicKey, dcaData: PublicKey, amount: BigNumber) {
+        try {
+            const vault = await findVaultAddress(owner, dcaData);
+            const ownerTokenAccount = await findAssociatedTokenAddress(owner, mint);
+            const vaultTokenAccount = await findAssociatedTokenAddress(vault, mint);
+            const vaultNativeMintAccount = await findAssociatedTokenAddress(vault, NATIVE_MINT);
+            const transferAmount = convertToLamports(amount);
 
-        const ownerAddress = new PublicKey(owner);
-        const mintAddress = new PublicKey(mint);
-        const dcaDataAddress = new PublicKey(dcaData);
-        const [vaultAddress,] = await findDcaDerivedAddress([ownerAddress.toBuffer(), dcaDataAddress.toBuffer()]);
-        const ownerTokenAddress,] = await findAssociatedTokenAddress(ownerAddress, mintAddress);
-        const [vaultTokenAddress,] = await findAssociatedTokenAddress(vaultAddress, mintAddress);
-        const [vaultNativeMintAddress,] = await findAssociatedTokenAddress(vaultAddress, NATIVE_MINT);
-        const transferAmount = convertToLamports(amount);
+            let txn = new Transaction()
+                .add(DcaInstruction.fundSol(
+                    owner,
+                    vault,
+                    mint,
+                    NATIVE_MINT,
+                    ownerTokenAccount,
+                    vaultNativeMintAccount,
+                    vaultTokenAccount,
+                    dcaData,
+                    transferAmount
+                ));
+            txn.feePayer = owner;
+            txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
 
-        let txn = new Transaction()
-            .add(DcaInstruction.fundSol(
-                ownerAddress,
-                vaultAddress,
-                mintAddress,
-                NATIVE_MINT,
-                ownerTokenAddress,
-                vaultNativeMintAddress,
-                vaultTokenAddress,
-                dcaDataAddress,
-                transferAmount
-            ));
-        txn.feePayer = ownerAddress;
-        txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
+            const signature = this.signAndSendTransaction(txn);
 
-        const signature = this.signAndSendTransaction(txn);
-
-        return {
-            status: "success",
-            data: {
-                signature: signature,
+            return {
+                status: "success",
+                data: {
+                    signature: signature,
+                }
             }
+        } catch (e) {
+            throw e;
         }
-    } catch (e) {
-        throw e;
     }
-}
 
 
 }
