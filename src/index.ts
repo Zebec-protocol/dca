@@ -1,6 +1,6 @@
 export * from "./constants";
 export * from "./instruction/index";
-export * from "./models/dcaAccount";
+export * from "./models/dca-account";
 export * from "./utils/index";
 
 

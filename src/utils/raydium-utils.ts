@@ -93,12 +93,27 @@ export async function fetchPoolKeys(
     };
 }
 
-export async function fetchAllPoolKeys(): Promise<LiquidityPoolKeys[]> {
+async function fetchAllPoolKeys(): Promise<LiquidityPoolKeys[]> {
     try {
         const response = await axios.get("https://api.raydium.io/v2/sdk/liquidity/mainnet.json");
         let poolKeysList: LiquidityPoolKeys[] = [...(response.data.official ?? []), ...(response.data.unOfficial ?? [])];
+        if (poolKeysList.length === 0) throw new Error("Error in retreiving liquidity pool keys");
         return poolKeysList;
     } catch (err) {
-        return [];
+        throw err;
     }
-} 
+}
+
+export async function findPoolIdByBaseAndQuoteMint(base: PublicKey, quote: PublicKey): Promise<PublicKey> {
+    try {
+        const poolKeysList = await fetchAllPoolKeys();
+        const keys = poolKeysList.find(el =>
+            el.baseMint.toString() == base.toString() &&
+            el.quoteMint.toString() == quote.toString()
+        );
+        if (!keys) throw new Error("No liquidity pool found for given base and quote mint.")
+        return keys.id;
+    } catch (err) {
+        throw err;
+    }
+}
