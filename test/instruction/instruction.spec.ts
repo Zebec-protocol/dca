@@ -3,7 +3,7 @@ import { AccountMeta, Keypair, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } fr
 import BN from "bn.js";
 import { expect } from "chai";
 import { DCA_PROGRAM_ID } from "../../src/constants";
-import { DepositSolData, DepositTokenData, InitializeData, SwapFromSolData, SwapToSolData, WithdrawSolData, WithdrawTokenData } from "../../src/instruction/data";
+import { DepositSolData, DepositTokenData, FundSolData, FundTokenData, InitializeData, SwapFromSolData, SwapToSolData, WithdrawSolData, WithdrawTokenData } from "../../src/instruction/data";
 import { DcaInstruction } from "../../src/instruction/instruction";
 import { findAssociatedTokenAddress, findVaultAddress } from "../../src/utils"
 
@@ -339,6 +339,76 @@ describe("DcaInstruction Test", () => {
             ];
 
             const data = new WithdrawTokenData(amount).encode();
+
+            expect(actual.keys).deep.equal(keys);
+            expect(actual.data).deep.equal(data);
+            expect(actual.programId).equal(DCA_PROGRAM_ID);
+        });
+    });
+
+    describe('fundToken()', () => {
+        it('should have expected value in its props', async () => {
+            const actual = DcaInstruction.fundToken(
+                owner,
+                vault,
+                mint,
+                ownerTokenAccount,
+                vaultTokenAccount,
+                dcaData,
+                amount
+            );
+
+            const keys: AccountMeta[] = [
+                { pubkey: owner, isSigner: true, isWritable: true },
+                { pubkey: vault, isSigner: false, isWritable: true },
+                { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+                { pubkey: mint, isSigner: false, isWritable: true },
+                { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+                { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+                { pubkey: ownerTokenAccount, isSigner: false, isWritable: true },
+                { pubkey: vaultTokenAccount, isSigner: false, isWritable: true },
+                { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+                { pubkey: dcaData, isSigner: false, isWritable: true },
+            ];
+
+            const data = new FundTokenData(amount).encode();
+
+            expect(actual.keys).deep.equal(keys);
+            expect(actual.data).deep.equal(data);
+            expect(actual.programId).equal(DCA_PROGRAM_ID);
+        });
+    });
+
+    describe('fundSol()', () => {
+        it('should have expected value in its props', async () => {
+            const actual = DcaInstruction.fundSol(
+                owner,
+                vault,
+                mint,
+                NATIVE_MINT,
+                ownerTokenAccount,
+                vaultNativeMintAccount,
+                vaultTokenAccount,
+                dcaData,
+                amount
+            );
+
+            const keys: AccountMeta[] = [
+                { pubkey: owner, isSigner: true, isWritable: true },
+                { pubkey: vault, isSigner: false, isWritable: true },
+                { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+                { pubkey: mint, isSigner: false, isWritable: true },
+                { pubkey: NATIVE_MINT, isSigner: false, isWritable: true },
+                { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+                { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+                { pubkey: ownerTokenAccount, isSigner: false, isWritable: true },
+                { pubkey: vaultNativeMintAccount, isSigner: false, isWritable: true },
+                { pubkey: vaultTokenAccount, isSigner: false, isWritable: true },
+                { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+                { pubkey: dcaData, isSigner: false, isWritable: true },
+            ];
+
+            const data = new FundSolData(amount).encode();
 
             expect(actual.keys).deep.equal(keys);
             expect(actual.data).deep.equal(data);
