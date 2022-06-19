@@ -7,7 +7,7 @@
   "scripts": {
     "start": "ts-node ./src",
     "build": "npm run clean; tsc -p .",
-    "clean": "rm -rf ./dist",
+    "clean": "rm -rf ./lib",
     "publish": "npm publish --access public",
     "test": "mocha --timeout=10000 --check-leaks -r tsconfig-paths/register -r ts-node/register \"./test/**/*.spec.ts\""
   },
