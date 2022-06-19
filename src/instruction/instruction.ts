@@ -89,7 +89,7 @@ export class DcaInstruction {
             AccountMetaFactory.newReadonly(SYSVAR_RENT_PUBKEY, false),
             AccountMetaFactory.newWritable(sourceTokenAccount, false),
             AccountMetaFactory.newWritable(vaultNativeMintAccount, false),
-            AccountMetaFactory.newReadonly(vaultTokenAccount, false),
+            AccountMetaFactory.newWritable(vaultTokenAccount, false),
             AccountMetaFactory.newReadonly(ASSOCIATED_TOKEN_PROGRAM_ID, false),
             AccountMetaFactory.newWritable(dcaAccount, true),
         ]

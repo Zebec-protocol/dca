@@ -1,39 +1,104 @@
 import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { AccountMeta, PublicKey } from "@solana/web3.js";
+import { AccountMeta, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 import BN from "bn.js";
+import { expect } from "chai";
+import { DCA_PROGRAM_ID } from "../../src/constants";
+import { DepositSolData, DepositTokenData } from "../../src/instruction/data";
 import { DcaInstruction } from "../../src/instruction/instruction";
-import { findProgramAddress, findAssociatedTokenAddress } from "../../src/utils"
+import { findAssociatedTokenAddress, findVaultAddress } from "../../src/utils"
 
-// describe("Instruction Test", () => {
+describe("DcaInstruction Test", () => {
 
-//     const owner = new PublicKey("DS2tt4BX7YwCw7yrDNwbAdnYrxjeCPeGJbHmZEYC8RTb");
-//     const dcaData = new PublicKey("9cf445gfnu7ZnKQXMRrddkBN8xvozFk5n8dDVusr4xoK");
-//     const mint = new PublicKey("5swt9oXbzr57dmPMZniWFoETYotCpbT7bpYbYViFGuoN");
+    const owner = new PublicKey("DS2tt4BX7YwCw7yrDNwbAdnYrxjeCPeGJbHmZEYC8RTb");
+    const dcaData = new PublicKey("9cf445gfnu7ZnKQXMRrddkBN8xvozFk5n8dDVusr4xoK");
+    const mint = new PublicKey("5swt9oXbzr57dmPMZniWFoETYotCpbT7bpYbYViFGuoN");
 
-//     describe("Deposit Instruction", () => {
-//         it("should have expected value in keys", async () => {
-//             const [vault,] = await findProgramAddress([owner.toBuffer(), dcaData.toBuffer()]);
-//             const [ownerAta,] = await findAssociatedTokenAddress(owner, mint);
-//             const [nmVaultAta,] = await findAssociatedTokenAddress(vault, NATIVE_MINT);
-//             const [vaultAta,] = await findAssociatedTokenAddress(vault, mint);
-//             const amount = new BN("500000000");
+    describe("depositToken()", () => {
+        it("should have expected value in its props", async () => {
+            const vault = await findVaultAddress(owner, dcaData);
+            const ownerTokenAccount = await findAssociatedTokenAddress(owner, mint);
+            const vaultNativeMintAccount = await findAssociatedTokenAddress(vault, NATIVE_MINT);
+            const vaultTokenAccount = await findAssociatedTokenAddress(vault, mint);
+            const amount = new BN("500000000");
 
-//             const actual = DcaInstruction.depositToken({
-//                 depositor: owner,
-//                 vault,
-//                 mint,
-//                 nativeMint: NATIVE_MINT,
-//                 ownerAta,
-//                 vaultAta,
-//                 nmVaultAta,
-//                 dcaAccount: dcaData,
-//                 amount
-//             });
+            const actual = DcaInstruction.depositToken(
+                owner,
+                vault,
+                mint,
+                NATIVE_MINT,
+                ownerTokenAccount,
+                vaultTokenAccount,
+                vaultNativeMintAccount,
+                dcaData,
+                amount
+            );
 
-//             const keys: AccountMeta[] = [
-//                 // { pubkey: }
-//             ]
-//         })
-//     })
+            const keys: AccountMeta[] = [
+                { pubkey: owner, isSigner: true, isWritable: true },
+                { pubkey: vault, isSigner: false, isWritable: true },
+                { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+                { pubkey: mint, isSigner: false, isWritable: true },
+                { pubkey: NATIVE_MINT, isSigner: false, isWritable: true },
+                { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+                { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+                { pubkey: ownerTokenAccount, isSigner: false, isWritable: true },
+                { pubkey: vaultTokenAccount, isSigner: false, isWritable: true },
+                { pubkey: vaultNativeMintAccount, isSigner: false, isWritable: true },
+                { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+                { pubkey: dcaData, isSigner: true, isWritable: true },
+            ];
 
-// })
+            const data = new DepositTokenData(amount).encode();
+
+            expect(actual.keys).deep.equal(keys);
+            expect(actual.data).deep.equal(data);
+            expect(actual.programId).equal(DCA_PROGRAM_ID);
+        })
+    })
+
+
+    describe("depositSol()", () => {
+        it("should have expected value in its props", async () => {
+            const vault = await findVaultAddress(owner, dcaData);
+            const ownerTokenAccount = await findAssociatedTokenAddress(owner, mint);
+            const vaultNativeMintAccount = await findAssociatedTokenAddress(vault, NATIVE_MINT);
+            const vaultTokenAccount = await findAssociatedTokenAddress(vault, mint);
+            const amount = new BN("500000000");
+
+            const actual = DcaInstruction.depositSol(
+                owner,
+                vault,
+                mint,
+                NATIVE_MINT,
+                ownerTokenAccount,
+                vaultNativeMintAccount,
+                vaultTokenAccount,
+                dcaData,
+                amount
+            );
+
+            const keys: AccountMeta[] = [
+                { pubkey: owner, isSigner: true, isWritable: true },
+                { pubkey: vault, isSigner: false, isWritable: true },
+                { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+                { pubkey: mint, isSigner: false, isWritable: true },
+                { pubkey: NATIVE_MINT, isSigner: false, isWritable: true },
+                { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+                { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+                { pubkey: ownerTokenAccount, isSigner: false, isWritable: true },
+                { pubkey: vaultNativeMintAccount, isSigner: false, isWritable: true },
+                { pubkey: vaultTokenAccount, isSigner: false, isWritable: true },
+                { pubkey: ASSOCIATED_TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+                { pubkey: dcaData, isSigner: true, isWritable: true },
+            ]
+
+            const data = new DepositSolData(amount).encode();
+
+            expect(actual.keys).deep.equal(keys);
+            expect(actual.data).deep.equal(data);
+            expect(actual.programId).equal(DCA_PROGRAM_ID);
+        })
+    })
+
+    describe("initialize")
+})
