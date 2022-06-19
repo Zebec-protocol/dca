@@ -11,18 +11,18 @@ export declare class DcaAccount {
     private _startTime;
     private _dcaAmount;
     private _dcaTime;
-    private _state;
     private _flag;
+    private _state;
     private _minimumAmountOut;
     constructor(param: {
         totalAmount: BN;
-        authority: PublicKey;
-        mintAddress: PublicKey;
+        authority: Uint8Array;
+        mintAddress: Uint8Array;
         startTime: BN;
         dcaAmount: BN;
         dcaTime: BN;
-        state: number;
         flag: number;
+        state: number;
         minimumAmountOut: BN;
     });
     /**
@@ -56,7 +56,7 @@ export declare class DcaAccount {
     /**
      * The flag tells whether to swap from sol to mint or mint to sol.
      */
-    get flag(): "SolToMint" | "MintToSol" | undefined;
+    get flag(): number;
     /**
      * The minimum amount out expected from the swap.
      */

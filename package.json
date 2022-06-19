@@ -2,8 +2,8 @@
   "name": "@zebec-protocol/dca",
   "version": "1.0.0",
   "description": "A client library to interact with Zebec DCA Program in solana blockchain",
-  "main": "./dist/index.js",
-  "types": "",
+  "main": "./lib/index.js",
+  "types": "lib/types",
   "scripts": {
     "start": "ts-node ./src",
     "build": "npm run clean; tsc -p .",
