@@ -9,7 +9,7 @@ export async function fetchPoolKeys(
     connection: Connection,
     poolId: PublicKey,
     version = 4
-) {
+): Promise<LiquidityPoolKeys> {
 
     // const version = 4
     const serumVersion = 3
@@ -104,7 +104,7 @@ async function fetchAllPoolKeys(): Promise<LiquidityPoolKeys[]> {
     }
 }
 
-export async function findPoolIdByBaseAndQuoteMint(base: PublicKey, quote: PublicKey): Promise<PublicKey> {
+export async function findPoolIdByBaseAndQuoteMint(base: PublicKey, quote: PublicKey): Promise<string> {
     try {
         const poolKeysList = await fetchAllPoolKeys();
         const keys = poolKeysList.find(el =>
@@ -112,7 +112,7 @@ export async function findPoolIdByBaseAndQuoteMint(base: PublicKey, quote: Publi
             el.quoteMint.toString() == quote.toString()
         );
         if (!keys) throw new Error("No liquidity pool found for given base and quote mint.")
-        return keys.id;
+        return keys.id.toString();
     } catch (err) {
         throw err;
     }
