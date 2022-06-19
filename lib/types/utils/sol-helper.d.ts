@@ -6,8 +6,8 @@ import BN from "bn.js";
  */
 export declare function convertToLamports(amount: BigNumber, decimal?: number): BN;
 /**
- * Convert sol or token amounts to lamports
+ * Convert lamports to decimal
  * @returns Amount in lamports
  */
-export declare function convertToBigNumber(amount: BN, decimal?: number): BN;
+export declare function convertToDecimal(amount: BN, decimal?: number): BigNumber;
 //# sourceMappingURL=sol-helper.d.ts.map

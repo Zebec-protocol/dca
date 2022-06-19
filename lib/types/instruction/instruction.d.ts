@@ -31,7 +31,7 @@ export declare class DcaInstruction {
     /**
      * Generate Transaction Instruction that withdraws native token from DCA vault
      */
-    static withdrawSol(source: PublicKey, vault: PublicKey, mint: PublicKey, sourceTokenAccount: PublicKey, vaultTokenAccount: PublicKey, dcaAccount: PublicKey, nativeMint: PublicKey, vaultNativeMintAccount: PublicKey, sourceNativeMint: PublicKey, transferAmount: BN): TransactionInstruction;
+    static withdrawSol(source: PublicKey, vault: PublicKey, mint: PublicKey, sourceTokenAccount: PublicKey, vaultTokenAccount: PublicKey, dcaAccount: PublicKey, nativeMint: PublicKey, vaultNativeMintAccount: PublicKey, sourceNativeMintAccount: PublicKey, transferAmount: BN): TransactionInstruction;
     /**
      * Generate transaction instruction that fund token in initialized dca
      */
