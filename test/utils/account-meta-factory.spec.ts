@@ -4,7 +4,7 @@ import { describe } from "mocha";
 import { AccountMetaFactory } from "../../src/utils";
 
 
-describe("accountMetasFactory utils test", () => {
+describe("Account Meta Factory utils test", () => {
     const testKey = new PublicKey("5swt9oXbzr57dmPMZniWFoETYotCpbT7bpYbYViFGuoN");
 
     describe("newWritable()", () => {
