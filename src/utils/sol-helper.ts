@@ -2,7 +2,6 @@ import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
 
-
 const isU64 = (amount: BigNumber) => {
     if (
         amount.isLessThan(new BigNumber(0)) ||
@@ -23,15 +22,11 @@ export function convertToLamports(amount: BigNumber, decimal = 9) {
 }
 
 /** 
- * Convert sol or token amounts to lamports
+ * Convert lamports to decimal
  * @returns Amount in lamports
  */
-export function convertToBigNumber(amount: BN, decimal = 9) {
+export function convertToDecimal(amount: BN, decimal = 9) {
     const _amount = new BigNumber(amount.toString());
     isU64(_amount);
-    return new BN(
-        _amount
-            .dividedBy(new BigNumber(10 ** decimal))
-            .toFixed()
-    );
+    return _amount.dividedBy(new BigNumber(10 ** decimal))
 }
