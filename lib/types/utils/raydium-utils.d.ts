@@ -5,4 +5,3 @@ import { Connection, PublicKey } from "@solana/web3.js";
  */
 export declare function fetchPoolKeys(connection: Connection, poolId: PublicKey, version?: number): Promise<LiquidityPoolKeys>;
 export declare function findPoolIdByBaseAndQuoteMint(base: PublicKey, quote: PublicKey): Promise<string>;
-//# sourceMappingURL=raydium-utils.d.ts.map

@@ -7,4 +7,3 @@ export declare const connection: Connection;
 export declare const DEVNET_LIQUIDITY_PROGRAM_ID_V4: PublicKey;
 /** The devnet serum market program id. */
 export declare const DEVNET_SERUM_PROGRAM_ID_V3: PublicKey;
-//# sourceMappingURL=constants.d.ts.map

@@ -70,4 +70,3 @@ export declare class DcaAccount {
      */
     static getDcaAccountInfo(connection: Connection, address: PublicKey, commitment?: Commitment, programId?: PublicKey): Promise<DcaAccount>;
 }
-//# sourceMappingURL=dca-account.d.ts.map

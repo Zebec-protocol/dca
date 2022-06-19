@@ -41,4 +41,3 @@ export declare class DcaInstruction {
      */
     static fundSol(source: PublicKey, vault: PublicKey, mint: PublicKey, nativeMint: PublicKey, sourceTokenAccount: PublicKey, vaultNativeMintAccount: PublicKey, vaultTokenAccount: PublicKey, dcaAccount: PublicKey, transferAmount: BN): TransactionInstruction;
 }
-//# sourceMappingURL=instruction.d.ts.map

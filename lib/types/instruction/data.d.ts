@@ -90,4 +90,3 @@ export declare class FundSolData {
     encode(): Buffer;
 }
 export {};
-//# sourceMappingURL=data.d.ts.map

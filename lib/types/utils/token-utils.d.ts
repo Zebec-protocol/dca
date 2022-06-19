@@ -6,4 +6,3 @@ export declare function getMintInfo(connection: Connection, address: PublicKey, 
     isInitialized: any;
     freezeAuthority: any;
 }>;
-//# sourceMappingURL=token-utils.d.ts.map

@@ -9,4 +9,3 @@ export declare class AccountMetaFactory {
      */
     static newReadonly(address: PublicKey, isSigner: boolean): AccountMeta;
 }
-//# sourceMappingURL=account-meta-factory.d.ts.map

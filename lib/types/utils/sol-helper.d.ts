@@ -10,4 +10,3 @@ export declare function convertToLamports(amount: BigNumber, decimal?: number): 
  * @returns Amount in lamports
  */
 export declare function convertToDecimal(amount: BN, decimal?: number): BigNumber;
-//# sourceMappingURL=sol-helper.d.ts.map
