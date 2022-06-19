@@ -3,7 +3,7 @@ import { AccountMeta, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from "@sola
 import BN from "bn.js";
 import { expect } from "chai";
 import { DCA_PROGRAM_ID } from "../../src/constants";
-import { DepositSolData, DepositTokenData } from "../../src/instruction/data";
+import { DepositSolData, DepositTokenData, InitializeData } from "../../src/instruction/data";
 import { DcaInstruction } from "../../src/instruction/instruction";
 import { findAssociatedTokenAddress, findVaultAddress } from "../../src/utils"
 
@@ -100,5 +100,36 @@ describe("DcaInstruction Test", () => {
         })
     })
 
-    describe("initialize")
+    describe("initialize()", () => {
+        it("should have expected value in its props", async () => {
+            const vault = await findVaultAddress(owner, dcaData);
+            const startTime = new BN("500000000");
+            const dcaTime = new BN("500000000");
+            const dcaAmount = new BN("500000000");
+            const minimumAmountOut = new BN("500000000");
+
+            const actual = DcaInstruction.initialize(
+                owner,
+                vault,
+                dcaData,
+                startTime,
+                dcaAmount,
+                dcaTime,
+                minimumAmountOut
+            );
+
+            const keys: AccountMeta[] = [
+                { pubkey: owner, isSigner: true, isWritable: true },
+                { pubkey: vault, isSigner: false, isWritable: true },
+                { pubkey: dcaData, isSigner: false, isWritable: true },
+            ];
+
+            const data = new InitializeData(startTime, dcaAmount, dcaTime, minimumAmountOut)
+                .encode();
+
+            expect(actual.keys).deep.equal(keys);
+            expect(actual.data).deep.equal(data);
+            expect(actual.programId).equal(DCA_PROGRAM_ID);
+        })
+    })
 })
