@@ -3,6 +3,7 @@ import BN from "bn.js";
 import { deserializeUnchecked } from "borsh";
 import { DCA_PROGRAM_ID } from "../constants";
 
+
 /**
  * The class for the dca account state in DCA program
  */
@@ -13,19 +14,19 @@ export class DcaAccount {
     private _startTime: BN;
     private _dcaAmount: BN;
     private _dcaTime: BN;
-    private _state: number;
     private _flag: number;
+    private _state: boolean;
     private _minimumAmountOut: BN;
 
     constructor(param: {
         totalAmount: BN,
-        authority: PublicKey,
-        mintAddress: PublicKey,
+        authority: Uint8Array,
+        mintAddress: Uint8Array,
         startTime: BN,
         dcaAmount: BN,
         dcaTime: BN,
-        state: number,
         flag: number,
+        state: number,
         minimumAmountOut: BN
     }) {
         this._totalAmount = param.totalAmount;
@@ -34,8 +35,8 @@ export class DcaAccount {
         this._startTime = param.startTime;
         this._dcaAmount = param.dcaAmount;
         this._dcaTime = param.dcaTime;
-        this._state = param.flag;
-        this._flag = param.state;
+        this._flag = param.flag;
+        this._state = param.state === 1;
         this._minimumAmountOut = param.minimumAmountOut;
     }
 
@@ -85,16 +86,14 @@ export class DcaAccount {
      * The state signifies whether the dca process has been initialized or not.
      */
     public get state(): boolean {
-        return this._state === 1;
+        return this._state;
     }
 
     /**
      * The flag tells whether to swap from sol to mint or mint to sol.
      */
-    public get flag(): "SolToMint" | "MintToSol" | undefined {
-        if (this._flag === 1) return "SolToMint";
-        else if (this._flag === 2) return "MintToSol";
-        else return undefined;
+    public get flag(): number {
+        return this._flag;
     }
 
     /**
@@ -136,8 +135,8 @@ const dcaAccountSchema = new Map([
                 ["startTime", "u64"],
                 ["dcaAmount", "u64"],
                 ["dcaTime", "u64"],
-                ["state", "u8"],
                 ["flag", "u8"],
+                ["state", "u8"],
                 ["minimumAmountOut", "u64"],
             ]
         }
