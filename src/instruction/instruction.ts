@@ -311,7 +311,7 @@ export class DcaInstruction {
         dcaAccount: PublicKey,
         nativeMint: PublicKey,
         vaultNativeMintAccount: PublicKey,
-        sourceNativeMint: PublicKey,
+        sourceNativeMintAccount: PublicKey,
         transferAmount: BN
     ) {
         const data = new WithdrawSolData(transferAmount).encode();
@@ -328,7 +328,7 @@ export class DcaInstruction {
             AccountMetaFactory.newWritable(dcaAccount, false),
             AccountMetaFactory.newWritable(nativeMint, false),
             AccountMetaFactory.newWritable(vaultNativeMintAccount, false),
-            AccountMetaFactory.newWritable(sourceNativeMint, false),
+            AccountMetaFactory.newWritable(sourceNativeMintAccount, false),
         ];
         return new TransactionInstruction({
             keys: keys,
