@@ -6,7 +6,6 @@ import {
     Keypair,
     LAMPORTS_PER_SOL,
     PublicKey,
-    sendAndConfirmRawTransaction,
     Transaction
 } from "@solana/web3.js";
 import { NATIVE_MINT } from "@solana/spl-token";
@@ -14,7 +13,8 @@ import {
     EventEmitter,
     SignerWalletAdapterProps,
     WalletAdapterEvents,
-    WalletAdapterProps
+    WalletAdapterProps,
+    WalletNotConnectedError
 } from "@solana/wallet-adapter-base";
 import BigNumber from "bignumber.js";
 import { BN } from "bn.js";
@@ -55,16 +55,34 @@ export class DcaClient {
     }
 
     private async signAndSendTransaction(txn: Transaction): Promise<string> {
-        const signedTxn = await this._wallet.signTransaction(txn);
-        return await sendAndConfirmRawTransaction(
-            this._connection,
-            signedTxn.serialize(),
-            {
-                commitment: this._commitment,
-                skipPreflight: false,
-                preflightCommitment: "processed"
+        try {
+            if (!this._wallet.publicKey) {
+                throw new WalletNotConnectedError("No wallet is connected.");
             }
-        );
+            const blockhash = await this._connection.getLatestBlockhash();
+            txn.recentBlockhash = blockhash.blockhash;
+            txn.lastValidBlockHeight = blockhash.lastValidBlockHeight;
+
+            txn.feePayer = this._wallet.publicKey;
+            const signedTxn = await this._wallet.signTransaction(txn);
+            const signature = await this._connection.sendRawTransaction(
+                signedTxn.serialize(),
+                {
+                    preflightCommitment: "confirmed",
+                    skipPreflight: false,
+                });
+            await this._connection.confirmTransaction(
+                {
+                    blockhash: blockhash.blockhash,
+                    lastValidBlockHeight: blockhash.lastValidBlockHeight,
+                    signature: signature
+                },
+                this._commitment
+            );
+            return signature;
+        } catch (error) {
+            throw error;
+        }
     }
 
     /**
@@ -93,9 +111,6 @@ export class DcaClient {
                     dcaDataAccount.publicKey,
                     _amount
                 ));
-
-            txn.feePayer = owner;
-            txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
             txn.partialSign(dcaDataAccount);
 
             const signature = await this.signAndSendTransaction(txn);
@@ -137,8 +152,6 @@ export class DcaClient {
                     dcaDataAccount.publicKey,
                     _amount
                 ));
-            txn.feePayer = owner;
-            txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
             txn.partialSign(dcaDataAccount);
 
             const signature = await this.signAndSendTransaction(txn);
@@ -177,8 +190,6 @@ export class DcaClient {
                     _dcaTime,
                     minimumAmountOut
                 ));
-            txn.feePayer = owner;
-            txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
 
             const signature = await this.signAndSendTransaction(txn);
 
@@ -214,8 +225,6 @@ export class DcaClient {
                     dcaData,
                     transferAmount
                 ));
-            txn.feePayer = owner;
-            txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
 
             const signature = await this.signAndSendTransaction(txn);
 
@@ -255,8 +264,6 @@ export class DcaClient {
                     ownerNativeMintAccount,
                     transferAmount
                 ));
-            txn.feePayer = owner;
-            txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
 
             const signature = await this.signAndSendTransaction(txn);
 
@@ -330,8 +337,6 @@ export class DcaClient {
                     NATIVE_MINT,
                     minAmountOut.raw
                 ));
-            txn.feePayer = owner;
-            txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
 
             const signature = await this.signAndSendTransaction(txn);
 
@@ -405,8 +410,6 @@ export class DcaClient {
                 NATIVE_MINT,
                 minAmountOut.raw
             ));
-        txn.feePayer = owner;
-        txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
 
         const signature = await this.signAndSendTransaction(txn);
 
@@ -439,8 +442,6 @@ export class DcaClient {
                     dcaData,
                     transferAmount
                 ));
-            txn.feePayer = owner;
-            txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
 
             const signature = await this.signAndSendTransaction(txn);
 
@@ -478,8 +479,6 @@ export class DcaClient {
                     dcaData,
                     transferAmount
                 ));
-            txn.feePayer = owner;
-            txn.recentBlockhash = (await this._connection.getLatestBlockhash()).blockhash;
 
             const signature = this.signAndSendTransaction(txn);
 
