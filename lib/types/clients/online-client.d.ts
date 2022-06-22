@@ -1,38 +1,39 @@
-import { Cluster, Commitment, PublicKey } from "@solana/web3.js";
-import { EventEmitter, SignerWalletAdapterProps, WalletAdapterEvents, WalletAdapterProps } from "@solana/wallet-adapter-base";
+import { Commitment, Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-interface WalletAdapter extends WalletAdapterProps, EventEmitter<WalletAdapterEvents>, SignerWalletAdapterProps {
-}
-export declare class DcaClient {
-    private _connection;
-    private _commitment;
+import { DcaClient, IWalletAdapter } from "./base";
+export declare class DcaOnlineClient extends DcaClient {
     private _wallet;
-    constructor(walletProvider: WalletAdapter, cluster?: Cluster, commitment?: Commitment);
+    constructor(params: {
+        wallet: IWalletAdapter;
+        connection: Connection;
+        commitment: Commitment;
+        preflightCommitment: Commitment;
+    });
     private signAndSendTransaction;
     /**
-     * Deposit non-native token in dca program vault
-     */
+      * Deposit non-native token in dca program vault
+      */
     depositToken(owner: PublicKey, mint: PublicKey, amount: BigNumber): Promise<{
         status: string;
         data: {
             signature: string;
-            dcaData: string;
+            dcaAccount: import("@solana/web3.js").Keypair;
         };
     }>;
     /**
- * Deposit sol in dca vault
- */
+     * Deposit sol in dca vault
+     */
     depositSol(owner: PublicKey, mint: PublicKey, amount: BigNumber): Promise<{
         status: string;
         data: {
             signature: string;
-            dcaData: string;
+            dcaAccount: import("@solana/web3.js").Keypair;
         };
     }>;
     /**
      * Intialize dca process
      */
-    initialize(owner: PublicKey, mint: PublicKey, dcaData: PublicKey, startTime: BigNumber, dcaAmount: BigNumber, dcaTime: BigNumber): Promise<{
+    initialize(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, startTime: BigNumber, dcaAmount: BigNumber, dcaTime: BigNumber): Promise<{
         status: string;
         data: {
             signature: string;
@@ -41,7 +42,7 @@ export declare class DcaClient {
     /**
      * Withdraw non-native token from vault
      */
-    withdrawToken(owner: PublicKey, mint: PublicKey, dcaData: PublicKey, amount: BigNumber): Promise<{
+    withdrawToken(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, amount: BigNumber): Promise<{
         status: string;
         data: {
             signature: string;
@@ -50,7 +51,7 @@ export declare class DcaClient {
     /**
      * Withdraw native token from vault
      */
-    withdrawSol(owner: PublicKey, mint: PublicKey, dcaData: PublicKey, amount: BigNumber): Promise<{
+    withdrawSol(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, amount: BigNumber): Promise<{
         status: string;
         data: {
             signature: string;
@@ -59,7 +60,7 @@ export declare class DcaClient {
     /**
      * Swap token from sol
      */
-    swapFromSol(owner: PublicKey, mint: PublicKey, dcaData: PublicKey): Promise<{
+    swapFromSol(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey): Promise<{
         status: string;
         data: {
             signature: string;
@@ -68,7 +69,7 @@ export declare class DcaClient {
     /**
      * Swap Token to Sol
      */
-    swapToSol(owner: PublicKey, mint: PublicKey, dcaData: PublicKey): Promise<{
+    swapToSol(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey): Promise<{
         status: string;
         data: {
             signature: string;
@@ -77,7 +78,7 @@ export declare class DcaClient {
     /**
      * Fund non-native token to existing vault
      */
-    fundToken(owner: PublicKey, mint: PublicKey, dcaData: PublicKey, amount: BigNumber): Promise<{
+    fundToken(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, amount: BigNumber): Promise<{
         status: string;
         data: {
             signature: string;
@@ -86,11 +87,10 @@ export declare class DcaClient {
     /**
      * Fund native token to existing vault
      */
-    fundSol(owner: PublicKey, mint: PublicKey, dcaData: PublicKey, amount: BigNumber): Promise<{
+    fundSol(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, amount: BigNumber): Promise<{
         status: string;
         data: {
             signature: Promise<string>;
         };
     }>;
 }
-export {};
