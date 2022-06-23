@@ -9,12 +9,6 @@ import {
 } from '@raydium-io/raydium-sdk';
 import { NATIVE_MINT } from '@solana/spl-token';
 import {
-  EventEmitter,
-  SignerWalletAdapterProps,
-  WalletAdapterEvents,
-  WalletAdapterProps,
-} from '@solana/wallet-adapter-base';
-import {
   Commitment,
   Connection,
   Keypair,
@@ -34,10 +28,11 @@ import {
   getMintInfo,
 } from '../utils';
 
-export interface IWalletAdapter
-  extends WalletAdapterProps,
-    EventEmitter<WalletAdapterEvents>,
-    SignerWalletAdapterProps {}
+export interface IWalletAdapter {
+  publicKey: PublicKey;
+  signTransaction(transaction: Transaction): Promise<Transaction>;
+  signAllTransactions(transactions: Transaction[]): Promise<Transaction[]>;
+}
 
 export abstract class DcaClient {
   protected _connection: Connection;
