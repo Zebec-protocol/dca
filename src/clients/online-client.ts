@@ -1,9 +1,18 @@
 import BigNumber from "bignumber.js";
 
 import { WalletNotConnectedError } from "@solana/wallet-adapter-base";
-import { Commitment, Connection, PublicKey, Signer, Transaction } from "@solana/web3.js";
+import {
+	Commitment,
+	Connection,
+	PublicKey,
+	Signer,
+	Transaction,
+} from "@solana/web3.js";
 
-import { DcaClient, IWalletAdapter } from "./base";
+import {
+	DcaClient,
+	IWalletAdapter,
+} from "./base";
 
 export class DcaOnlineClient extends DcaClient {
 	private _wallet: IWalletAdapter;
@@ -33,7 +42,6 @@ export class DcaOnlineClient extends DcaClient {
 				txn.partialSign(...signers);
 			}
 			const signedTxn = await this._wallet.signTransaction(txn);
-			console.log(signedTxn);
 			const signature = await this._connection.sendRawTransaction(signedTxn.serialize(), {
 				preflightCommitment: this._preflightCommitment,
 				skipPreflight: false,
