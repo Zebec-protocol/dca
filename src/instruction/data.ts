@@ -1,346 +1,346 @@
-import BN from 'bn.js';
-import { serialize } from 'borsh';
+import BN from "bn.js";
+import { serialize } from "borsh";
 
 enum InstructionTypes {
-  DepositToken,
-  DepositSol,
-  Initialize,
-  SwapToSol,
-  SwapFromSol,
-  WithdrawToken,
-  WithdrawSol,
-  FundToken,
-  FundSol,
+	DepositToken,
+	DepositSol,
+	Initialize,
+	SwapToSol,
+	SwapFromSol,
+	WithdrawToken,
+	WithdrawSol,
+	FundToken,
+	FundSol,
 }
 
 export class DepositTokenData {
-  private _instruction: InstructionTypes;
-  private _amount: BN;
+	private _instruction: InstructionTypes;
+	private _amount: BN;
 
-  constructor(amount: BN) {
-    this._instruction = InstructionTypes.DepositToken;
-    this._amount = amount;
-  }
+	constructor(amount: BN) {
+		this._instruction = InstructionTypes.DepositToken;
+		this._amount = amount;
+	}
 
-  public get instruction(): InstructionTypes {
-    return this._instruction;
-  }
+	public get instruction(): InstructionTypes {
+		return this._instruction;
+	}
 
-  public get amount(): BN {
-    return this._amount;
-  }
+	public get amount(): BN {
+		return this._amount;
+	}
 
-  encode() {
-    return Buffer.from(serialize(depositTokenSchema, this));
-  }
+	encode() {
+		return Buffer.from(serialize(depositTokenSchema, this));
+	}
 }
 
 export class DepositSolData {
-  private _instruction: InstructionTypes;
-  private _amount: BN;
+	private _instruction: InstructionTypes;
+	private _amount: BN;
 
-  constructor(amount: BN) {
-    this._instruction = InstructionTypes.DepositSol;
-    this._amount = amount;
-  }
+	constructor(amount: BN) {
+		this._instruction = InstructionTypes.DepositSol;
+		this._amount = amount;
+	}
 
-  public get instruction(): InstructionTypes {
-    return this._instruction;
-  }
+	public get instruction(): InstructionTypes {
+		return this._instruction;
+	}
 
-  public get amount(): BN {
-    return this._amount;
-  }
+	public get amount(): BN {
+		return this._amount;
+	}
 
-  encode() {
-    return Buffer.from(serialize(depositSolSchema, this));
-  }
+	encode() {
+		return Buffer.from(serialize(depositSolSchema, this));
+	}
 }
 
 export class InitializeData {
-  private _instruction: InstructionTypes;
-  private _startTime: BN;
-  private _dcaAmount: BN;
-  private _dcaTime: BN;
-  private _minimumAmountOut: BN;
+	private _instruction: InstructionTypes;
+	private _startTime: BN;
+	private _dcaAmount: BN;
+	private _dcaTime: BN;
+	private _minimumAmountOut: BN;
 
-  constructor(startTime: BN, dcaAmount: BN, dcaTime: BN, minimumAmountOut: BN) {
-    this._instruction = InstructionTypes.Initialize;
-    this._startTime = startTime;
-    this._dcaAmount = dcaAmount;
-    this._dcaTime = dcaTime;
-    this._minimumAmountOut = minimumAmountOut;
-  }
+	constructor(startTime: BN, dcaAmount: BN, dcaTime: BN, minimumAmountOut: BN) {
+		this._instruction = InstructionTypes.Initialize;
+		this._startTime = startTime;
+		this._dcaAmount = dcaAmount;
+		this._dcaTime = dcaTime;
+		this._minimumAmountOut = minimumAmountOut;
+	}
 
-  public get instruction(): InstructionTypes {
-    return this._instruction;
-  }
-  public get startTime(): BN {
-    return this._startTime;
-  }
-  public get dcaAmount(): BN {
-    return this._dcaAmount;
-  }
-  public get dcaTime(): BN {
-    return this._dcaTime;
-  }
-  public get minimumAmountOut(): BN {
-    return this._minimumAmountOut;
-  }
+	public get instruction(): InstructionTypes {
+		return this._instruction;
+	}
+	public get startTime(): BN {
+		return this._startTime;
+	}
+	public get dcaAmount(): BN {
+		return this._dcaAmount;
+	}
+	public get dcaTime(): BN {
+		return this._dcaTime;
+	}
+	public get minimumAmountOut(): BN {
+		return this._minimumAmountOut;
+	}
 
-  encode() {
-    return Buffer.from(serialize(initializeSchema, this));
-  }
+	encode() {
+		return Buffer.from(serialize(initializeSchema, this));
+	}
 }
 
 export class SwapToSolData {
-  private _instruction: InstructionTypes;
-  private _minimumAmountOut: BN;
+	private _instruction: InstructionTypes;
+	private _minimumAmountOut: BN;
 
-  constructor(minimumAmountOut: BN) {
-    this._instruction = InstructionTypes.SwapToSol;
-    this._minimumAmountOut = minimumAmountOut;
-  }
+	constructor(minimumAmountOut: BN) {
+		this._instruction = InstructionTypes.SwapToSol;
+		this._minimumAmountOut = minimumAmountOut;
+	}
 
-  public get instruction(): InstructionTypes {
-    return this._instruction;
-  }
+	public get instruction(): InstructionTypes {
+		return this._instruction;
+	}
 
-  public get minimumAmountOut(): BN {
-    return this._minimumAmountOut;
-  }
+	public get minimumAmountOut(): BN {
+		return this._minimumAmountOut;
+	}
 
-  encode() {
-    return Buffer.from(serialize(swapToSolSchema, this));
-  }
+	encode() {
+		return Buffer.from(serialize(swapToSolSchema, this));
+	}
 }
 
 export class SwapFromSolData {
-  private _instruction: InstructionTypes;
-  private _minimumAmountOut: BN;
+	private _instruction: InstructionTypes;
+	private _minimumAmountOut: BN;
 
-  constructor(minimumAmountOut: BN) {
-    this._instruction = InstructionTypes.SwapFromSol;
-    this._minimumAmountOut = minimumAmountOut;
-  }
+	constructor(minimumAmountOut: BN) {
+		this._instruction = InstructionTypes.SwapFromSol;
+		this._minimumAmountOut = minimumAmountOut;
+	}
 
-  public get instruction(): InstructionTypes {
-    return this._instruction;
-  }
+	public get instruction(): InstructionTypes {
+		return this._instruction;
+	}
 
-  public get minimumAmountOut(): BN {
-    return this._minimumAmountOut;
-  }
+	public get minimumAmountOut(): BN {
+		return this._minimumAmountOut;
+	}
 
-  encode() {
-    return Buffer.from(serialize(swapFromSolSchema, this));
-  }
+	encode() {
+		return Buffer.from(serialize(swapFromSolSchema, this));
+	}
 }
 
 export class WithdrawTokenData {
-  private _instruction: InstructionTypes;
-  private _transferAmount: BN;
+	private _instruction: InstructionTypes;
+	private _transferAmount: BN;
 
-  constructor(transferAmount: BN) {
-    this._instruction = InstructionTypes.WithdrawToken;
-    this._transferAmount = transferAmount;
-  }
+	constructor(transferAmount: BN) {
+		this._instruction = InstructionTypes.WithdrawToken;
+		this._transferAmount = transferAmount;
+	}
 
-  public get instruction(): InstructionTypes {
-    return this._instruction;
-  }
+	public get instruction(): InstructionTypes {
+		return this._instruction;
+	}
 
-  public get transferAmount(): BN {
-    return this._transferAmount;
-  }
+	public get transferAmount(): BN {
+		return this._transferAmount;
+	}
 
-  encode() {
-    return Buffer.from(serialize(withdrawTokenSchema, this));
-  }
+	encode() {
+		return Buffer.from(serialize(withdrawTokenSchema, this));
+	}
 }
 
 export class WithdrawSolData {
-  private _instruction: InstructionTypes;
-  private _transferAmount: BN;
+	private _instruction: InstructionTypes;
+	private _transferAmount: BN;
 
-  constructor(transferAmount: BN) {
-    this._instruction = InstructionTypes.WithdrawSol;
-    this._transferAmount = transferAmount;
-  }
+	constructor(transferAmount: BN) {
+		this._instruction = InstructionTypes.WithdrawSol;
+		this._transferAmount = transferAmount;
+	}
 
-  public get instruction(): InstructionTypes {
-    return this._instruction;
-  }
+	public get instruction(): InstructionTypes {
+		return this._instruction;
+	}
 
-  public get transferAmount(): BN {
-    return this._transferAmount;
-  }
+	public get transferAmount(): BN {
+		return this._transferAmount;
+	}
 
-  encode() {
-    return Buffer.from(serialize(withdrawSolSchema, this));
-  }
+	encode() {
+		return Buffer.from(serialize(withdrawSolSchema, this));
+	}
 }
 
 export class FundTokenData {
-  private _instruction: InstructionTypes;
-  private _transferAmount: BN;
+	private _instruction: InstructionTypes;
+	private _transferAmount: BN;
 
-  constructor(transferAmount: BN) {
-    this._instruction = InstructionTypes.FundToken;
-    this._transferAmount = transferAmount;
-  }
+	constructor(transferAmount: BN) {
+		this._instruction = InstructionTypes.FundToken;
+		this._transferAmount = transferAmount;
+	}
 
-  public get instruction(): InstructionTypes {
-    return this._instruction;
-  }
+	public get instruction(): InstructionTypes {
+		return this._instruction;
+	}
 
-  public get transferAmount(): BN {
-    return this._transferAmount;
-  }
+	public get transferAmount(): BN {
+		return this._transferAmount;
+	}
 
-  encode() {
-    return Buffer.from(serialize(fundTokenSchema, this));
-  }
+	encode() {
+		return Buffer.from(serialize(fundTokenSchema, this));
+	}
 }
 
 export class FundSolData {
-  private _instruction: InstructionTypes;
-  private _transferAmount: BN;
+	private _instruction: InstructionTypes;
+	private _transferAmount: BN;
 
-  constructor(transferAmount: BN) {
-    this._instruction = InstructionTypes.FundSol;
-    this._transferAmount = transferAmount;
-  }
+	constructor(transferAmount: BN) {
+		this._instruction = InstructionTypes.FundSol;
+		this._transferAmount = transferAmount;
+	}
 
-  public get instruction(): InstructionTypes {
-    return this._instruction;
-  }
+	public get instruction(): InstructionTypes {
+		return this._instruction;
+	}
 
-  public get transferAmount(): BN {
-    return this._transferAmount;
-  }
+	public get transferAmount(): BN {
+		return this._transferAmount;
+	}
 
-  encode() {
-    return Buffer.from(serialize(fundSolSchema, this));
-  }
+	encode() {
+		return Buffer.from(serialize(fundSolSchema, this));
+	}
 }
 
 const depositTokenSchema = new Map([
-  [
-    DepositTokenData,
-    {
-      kind: "struct",
-      fields: [
-        ["instruction", "u8"],
-        ["amount", "u64"],
-      ],
-    },
-  ],
+	[
+		DepositTokenData,
+		{
+			kind: "struct",
+			fields: [
+				["instruction", "u8"],
+				["amount", "u64"],
+			],
+		},
+	],
 ]);
 
 const initializeSchema = new Map([
-  [
-    InitializeData,
-    {
-      kind: "struct",
-      fields: [
-        ["instruction", "u8"],
-        ["startTime", "u64"],
-        ["dcaAmount", "u64"],
-        ["dcaTime", "u64"],
-        ["minimumAmountOut", "u64"],
-      ],
-    },
-  ],
+	[
+		InitializeData,
+		{
+			kind: "struct",
+			fields: [
+				["instruction", "u8"],
+				["startTime", "u64"],
+				["dcaAmount", "u64"],
+				["dcaTime", "u64"],
+				["minimumAmountOut", "u64"],
+			],
+		},
+	],
 ]);
 
 const depositSolSchema = new Map([
-  [
-    DepositSolData,
-    {
-      kind: "struct",
-      fields: [
-        ["instruction", "u8"],
-        ["amount", "u64"],
-      ],
-    },
-  ],
+	[
+		DepositSolData,
+		{
+			kind: "struct",
+			fields: [
+				["instruction", "u8"],
+				["amount", "u64"],
+			],
+		},
+	],
 ]);
 
 const swapToSolSchema = new Map([
-  [
-    SwapToSolData,
-    {
-      kind: "struct",
-      fields: [
-        ["instruction", "u8"],
-        ["minimumAmountOut", "u64"],
-      ],
-    },
-  ],
+	[
+		SwapToSolData,
+		{
+			kind: "struct",
+			fields: [
+				["instruction", "u8"],
+				["minimumAmountOut", "u64"],
+			],
+		},
+	],
 ]);
 
 const swapFromSolSchema = new Map([
-  [
-    SwapFromSolData,
-    {
-      kind: "struct",
-      fields: [
-        ["instruction", "u8"],
-        ["minimumAmountOut", "u64"],
-      ],
-    },
-  ],
+	[
+		SwapFromSolData,
+		{
+			kind: "struct",
+			fields: [
+				["instruction", "u8"],
+				["minimumAmountOut", "u64"],
+			],
+		},
+	],
 ]);
 
 const withdrawTokenSchema = new Map([
-  [
-    WithdrawTokenData,
-    {
-      kind: "struct",
-      fields: [
-        ["instruction", "u8"],
-        ["transferAmount", "u64"],
-      ],
-    },
-  ],
+	[
+		WithdrawTokenData,
+		{
+			kind: "struct",
+			fields: [
+				["instruction", "u8"],
+				["transferAmount", "u64"],
+			],
+		},
+	],
 ]);
 
 const withdrawSolSchema = new Map([
-  [
-    WithdrawSolData,
-    {
-      kind: "struct",
-      fields: [
-        ["instruction", "u8"],
-        ["transferAmount", "u64"],
-      ],
-    },
-  ],
+	[
+		WithdrawSolData,
+		{
+			kind: "struct",
+			fields: [
+				["instruction", "u8"],
+				["transferAmount", "u64"],
+			],
+		},
+	],
 ]);
 
 const fundTokenSchema = new Map([
-  [
-    FundTokenData,
-    {
-      kind: "struct",
-      fields: [
-        ["instruction", "u8"],
-        ["transferAmount", "u64"],
-      ],
-    },
-  ],
+	[
+		FundTokenData,
+		{
+			kind: "struct",
+			fields: [
+				["instruction", "u8"],
+				["transferAmount", "u64"],
+			],
+		},
+	],
 ]);
 
 const fundSolSchema = new Map([
-  [
-    FundSolData,
-    {
-      kind: "struct",
-      fields: [
-        ["instruction", "u8"],
-        ["transferAmount", "u64"],
-      ],
-    },
-  ],
+	[
+		FundSolData,
+		{
+			kind: "struct",
+			fields: [
+				["instruction", "u8"],
+				["transferAmount", "u64"],
+			],
+		},
+	],
 ]);

@@ -1,12 +1,12 @@
 {
-    "presets": [
-        "@babel/preset-typescript",
-        [
-            "@babel/preset-env",
-            {
-                "bugfixes": true,
-                "targets": "> 0.25%, not dead"
-            }
-        ]
-    ]
+	"presets": [
+		"@babel/preset-typescript",
+		[
+			"@babel/preset-env",
+			{
+				"bugfixes": true,
+				"targets": "> 0.25%, not dead"
+			}
+		]
+	]
 }
