@@ -7,6 +7,7 @@ import {
 	it,
 } from "mocha";
 
+import { NATIVE_MINT } from "@solana/spl-token";
 import {
 	Keypair,
 	PublicKey,
@@ -15,6 +16,7 @@ import {
 
 import { DcaClientFactory } from "../../src/clients";
 import { connection } from "../../src/constants";
+import { findAssociatedTokenAddress } from "../../src/utils";
 
 dotenv.config();
 
@@ -64,31 +66,94 @@ async function isConfirmed(signature: string) {
 		}
 	}
 }
+const dcaAccountA = new PublicKey("AtTJrt7hSCpT4pYB3R7S3Xi59dgp7jVRAEGKJSyjH1nX");
+const dcaAccountB = new PublicKey("B4mAeTp58jJuoXsLqQnhuytj67TpGQnzqoJDg9FMyzRy");
 
-describe("Dca online client test", () => {
+const expectedStatus = "success";
+
+describe("Dca online client test", async () => {
 	const dcaOnlineClient = new DcaClientFactory()
 		.setConnection(connection)
 		.setCommitment("confirmed")
 		.setPreflightCommitment("confirmed")
 		.buildOnlineClient(wallet);
 
-	let dcaAccountForSolDeposit: PublicKey;
-	let dcaAccountForTokenDeposit: PublicKey;
-
 	describe("depositToken()", () => {
 		it("deposit token into dca vault", async () => {
-			const { data, status } = await dcaOnlineClient.depositToken(
-				ownerKeypair.publicKey,
+			const {
+				data: { dcaAccount: dcaAccountForTokenDeposit, signature: depositTokenSignature },
+				status: depositTokenStatus,
+			} = await dcaOnlineClient.depositToken(wallet.publicKey, MINT1, new BigNumber("0.0001"));
+			const accountInfo = await connection.getAccountInfo(dcaAccountForTokenDeposit.publicKey);
+			expect(accountInfo).not.to.be.null;
+			expect(depositTokenStatus).to.equal(expectedStatus);
+			expect(depositTokenSignature).not.to.be.undefined;
+			const confirmed = await isConfirmed(depositTokenSignature);
+			expect(confirmed).to.be.true;
+		});
+	});
+
+	describe("intialize()", () => {
+		it("intialize the dca process", async () => {
+			const {
+				data: { signature: initializeSignature },
+				status: initializeStatus,
+			} = await dcaOnlineClient.initialize(
+				wallet.publicKey,
 				MINT1,
-				new BigNumber("0.0001"),
+				dcaAccountA,
+				new BigNumber(Date.now() / 1000 + 120),
+				new BigNumber(0.001),
+				new BigNumber(3000),
 			);
-			expect(status).to.equal("success");
-			expect(data.signature).not.to.be.undefined;
+			expect(initializeStatus).to.equal("success");
+			expect(initializeSignature).not.to.be.undefined;
+			const confirmed = await isConfirmed(initializeSignature);
+			expect(confirmed).to.be.true;
+		});
+	});
 
-			dcaAccountForTokenDeposit = data.dcaAccount.publicKey;
+	describe("swapToSol()", () => {
+		it("swap token mint to wsol", async () => {
+			const {
+				data: { signature: swapToSolSignature },
+				status: swapToSolStatus,
+			} = await dcaOnlineClient.swapToSol(wallet.publicKey, MINT1, dcaAccountA);
+			expect(swapToSolStatus).to.equal(expectedStatus);
+			expect(swapToSolSignature).not.to.be.undefined;
+			const confirmed = await isConfirmed(swapToSolSignature);
+			expect(confirmed).to.be.true;
+		});
+	});
 
-			const confirmed = await isConfirmed(data.signature);
-			expect(confirmed).not.to.be.false;
+	describe("withdrawToken()", () => {
+		it("withdraw swapped wsol from dca vault", async () => {
+			const dcaWSolVault = await findAssociatedTokenAddress(dcaAccountA, NATIVE_MINT);
+			const {
+				value: { uiAmount },
+			} = await connection.getTokenAccountBalance(dcaWSolVault);
+			if (!uiAmount) throw new Error("Withdraw amount not retrieved");
+			const {
+				data: { signature: withdrawSolSignature },
+				status: withdrawSolStatus,
+			} = await dcaOnlineClient.withdrawSol(wallet.publicKey, MINT1, dcaAccountA, new BigNumber(uiAmount));
+			expect(withdrawSolStatus).to.equal(expectedStatus);
+			expect(withdrawSolSignature).not.to.be.undefined;
+			const confirmed = await isConfirmed(withdrawSolSignature);
+			expect(confirmed).to.be.true;
+		});
+	});
+
+	describe("fundToken()", () => {
+		it("fund tokens to existing dca process", async () => {
+			const {
+				data: { signature: fundTokenSignature },
+				status: fundTokenStatus,
+			} = await dcaOnlineClient.fundToken(wallet.publicKey, MINT1, dcaAccountA, new BigNumber(0.001));
+			expect(fundTokenStatus).to.equal(expectedStatus);
+			expect(fundTokenSignature).not.to.be.undefined;
+			const confirmed = await isConfirmed(fundTokenSignature);
+			expect(confirmed).to.be.true;
 		});
 	});
 });
