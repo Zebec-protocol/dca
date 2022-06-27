@@ -39,7 +39,7 @@ export class DcaClientFactory {
 		});
 	}
 
-	buildPayerClient(payer: Keypair) {
+	buildOfflineClient(payer: Keypair) {
 		return new DcaOfflineClient({
 			connection: this._connection,
 			commitment: this._commitment,

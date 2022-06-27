@@ -216,7 +216,7 @@ export class DcaOfflineClient extends DcaClient {
 		try {
 			const transaction = await this.makeFundSolTransaction(owner, mint, dcaAccount, amount);
 
-			const signature = this.sendTransaction(transaction, [this._payer]);
+			const signature = await this.sendTransaction(transaction, [this._payer]);
 
 			return {
 				status: "success",
