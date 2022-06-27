@@ -8,7 +8,7 @@ import { DcaOfflineClient } from "../../src/clients/offline-client";
 import { connection } from "../../src/constants";
 
 describe("Dca client factory test", () => {
-	const dcaOfflineClient = new DcaClientFactory().setConnection(connection).buildPayerClient(Keypair.generate());
+	const dcaOfflineClient = new DcaClientFactory().setConnection(connection).buildOfflineClient(Keypair.generate());
 
 	const dcaOnlineClient = new DcaClientFactory().setConnection(connection).buildOnlineClient({
 		publicKey: new PublicKey("DS2tt4BX7YwCw7yrDNwbAdnYrxjeCPeGJbHmZEYC8RTb"),

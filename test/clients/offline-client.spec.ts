@@ -3,9 +3,9 @@ import bs58 from "bs58";
 import { expect } from "chai";
 import * as dotenv from "dotenv";
 
-import { syncNative, transfer } from "@solana/spl-token";
 import { Keypair, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 
+import { syncNative, transfer } from "../../node_modules/@solana/spl-token";
 import { DcaClientFactory } from "../../src/clients";
 import { connection } from "../../src/constants";
 import { findAssociatedTokenAddress } from "../../src/utils";
