@@ -65,16 +65,17 @@ The work flow for both online and offline client is same for implementing the dc
 ```js
 const mint = new PublicKey("4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R");
 
-// first deposit some token
-// the dcaAccount address returned by the client should be saved for further use.
+// exchanging from tokens to sol
+// deposit some token
 const {
-	data: { dcaAccount, signature },
+    data: { dcaAccount, signature },
 	status,
 } = await dcaOnlineClient.depositToken(
     wallet.publicKey,
     mint,
     // ui amount to deposit
     new BigNumber("0.0001")));
+// Note: Save the dcaAccount address for further use.
 
 // then init the dca process
 const {
@@ -121,5 +122,55 @@ const {
     dcaAccountA,
     // ui amount to fund
     new BigNumber(0.001));
+
+// end exchanging from tokens to sol
+
+const mint1 = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+
+// exchanging from sol to tokens
+// deposit some sol
+const {
+    data: { signature, dcaAccount },
+    status,
+} = await dcaOnlineClient.depositSol(
+    wallet.publicKey,
+    mint1,
+    // ui amount to deposit
+    new BigNumber("0.0001"));
+
+// Note: Save the dcaAccount address for further use.
+
+// Initialize the dca process in the same way as above
+
+// swap sol to tokens
+const {
+    data: { signature },
+    status,
+} = await dcaOnlineClient.swapFromSol(
+    wallet.publicKey,
+    mint1,
+    dcaAccountB);
+
+// withdraw tokens
+const {
+    data: { signature },
+    status,
+} = await dcaOnlineClient.withdrawToken(
+    wallet.publicKey,
+    mint1,
+    dcaAccountB,
+    //ui amount to withdraw
+    new BigNumber(0.001));
+
+// fund sol
+const {
+    data: { signature },
+    status,
+} = await dcaOnlineClient.fundSol(
+    wallet.publicKey,
+    mint1,
+    dcaAccountB,
+    // ui amount to withdraw
+    new BigNumber(0.000001));
 
 ```

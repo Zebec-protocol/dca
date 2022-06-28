@@ -226,7 +226,7 @@ describe("Dca online client test", async () => {
 			);
 			await syncNative(connection, ownerKeypair, dca1WSolVault, { commitment: "confirmed" });
 		});
-		it("withdraw swapped token mint from dca vault", async () => {
+		it("withdraw swapped sol from dca vault", async () => {
 			const {
 				data: { signature },
 				status,
