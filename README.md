@@ -1,6 +1,8 @@
 # DCA Program TypeScript Client
 
-A client library to interact with DCA program in solana blockchain. It consists of some simple API which makes you able to perform some operations related to dollar cost averaging. The concept of DCA is same as in real world where buying dollar every day reduces the risk and result in higher returns accumulating both best and worst prices howeever, the implementation logic might differ here.
+A client library to interact with DCA program in solana blockchain. It consists of some simple API which makes you able to perform some operations for implementing dollar cost averaging.
+
+The concept of DCA is same as in real world where buying dollar every day reduces the risk and result in higher returns accumulating both best and worst prices however, the implementation logic might differ here.
 
 ## Installation
 
@@ -39,20 +41,18 @@ import { Connection, Keypair } from "@solana/web3.js";
 import { DcaClientFactory, CONNECTION as connection } from "@zebec-protocol/dca";
 import { useWallet } from "@solana/wallet-adapter-react";
 
-// wallet adapter
+/*** creating online dca client ***/
 const wallet = useWallet();
 
-// online dca client
 const dcaOnlineClient = new DcaClientFactory()
 	.setConnection(connection)
 	.setCommitment("confirmed")
 	.setPreflightCommitment("confirmed")
 	.buildOnlineClient(wallet);
 
-// keypair to use for signer
+/*** creating offline dca client ***/
 const ownerKeypair = Keypair.generate();
 
-// offline dca client
 const dcaOfflineClient = new DcaClientFactory()
 	.setConnection(connection)
 	.setCommitment("confirmed")
@@ -63,120 +63,117 @@ const dcaOfflineClient = new DcaClientFactory()
 The work flow for both online and offline client is same for implementing the dca process. The example usage is given below:
 
 ```js
+/*** exchanging from tokens to sol ***/
 const mint = new PublicKey("4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R");
 
-// exchanging from tokens to sol
-// deposit some token
+/*1. deposit some token */
 const {
-    data: { dcaAccount, signature },
+	data: { signature, dcaAccount: dcaAccountA },
 	status,
-} = await dcaOnlineClient.depositToken(
-    wallet.publicKey,
-    mint,
-    // ui amount to deposit
-    new BigNumber("0.0001")));
-// Note: Save the dcaAccount address for further use.
+} = await dcaOnlineClient.depositToken(wallet.publicKey, mint, new BigNumber("0.0001"));
+/* Note: Save the dcaAccount address for further use. */
 
-// then init the dca process
+/*2. init the dca process */
 const {
-    data: { signature: initializeSignature },
+	data: { signature: initializeSignature },
 	status: initializeStatus,
 } = await dcaOnlineClient.initialize(
-    wallet.publicKey,
-    mint,
-	dcaAccount,
-	// startTime in unix timestamp.
-    // 120 is added so that given time don't get passed at the contract
-    // due to time taken by txn to reach to contract
-    new BigNumber(Date.now() / 1000 + 120),
-    // amount to swap at a time from total amount
-    new BigNumber(0.001),
-    // time duration to wait between two consecutive swap
+	wallet.publicKey,
+	mint,
+	dcaAccountA,
+	new BigNumber(Date.now() / 1000 + 120),
+	new BigNumber(0.001),
 	new BigNumber(3000),
 );
+/* Note: 120 is added in dca time so that given time don't get passed at the contract due to time taken by txn to reach to contract */
 
-// swap tokens to sol
+/*3. swap tokens to sol */
 const {
-    data: { signature },
-    status,
+	data: { signature },
+	status,
 } = await dcaOnlineClient.swapToSol(wallet.publicKey, mint, dcaAccountA);
 
-// withdraw wsol obtained after swapping tokens to wsol
+/*4. withdraw wsol obtained after swapping tokens to wsol */
 const {
-    data: { signature },
-    status,
-} = await dcaOnlineClient.withdrawSol(
-    wallet.publicKey,
-    mint,
-    dcaAccountA,
-    // ui amount to withdraw
-    new BigNumber(0.000001));
+	data: { signature },
+	status,
+} = await dcaOnlineClient.withdrawSol(wallet.publicKey, mint, dcaAccountA, new BigNumber(0.000001));
 
-// fund tokens to existing dca account
+/*5. fund tokens to existing dca account */
 const {
-    data: { signature },
-    status,
-} = await dcaOnlineClient.fundToken(
-    wallet.publicKey,
-    mint,
-    dcaAccountA,
-    // ui amount to fund
-    new BigNumber(0.001));
+	data: { signature },
+	status,
+} = await dcaOnlineClient.fundToken(wallet.publicKey, mint, dcaAccountA, new BigNumber(0.001));
 
-// end exchanging from tokens to sol
+/*** end exchanging from tokens to sol ***/
 
+/*** exchanging from sol to tokens ***/
 const mint1 = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
 
-// exchanging from sol to tokens
-// deposit some sol
+/*1. deposit some sol */
 const {
-    data: { signature, dcaAccount },
-    status,
-} = await dcaOnlineClient.depositSol(
-    wallet.publicKey,
-    mint1,
-    // ui amount to deposit
-    new BigNumber("0.0001"));
+	data: { signature, dcaAccount: dcaAccountB },
+	status,
+} = await dcaOnlineClient.depositSol(wallet.publicKey, mint1, new BigNumber("0.0001"));
+/* Note: Save the dcaAccount address for further use. */
 
-// Note: Save the dcaAccount address for further use.
+/*2. Initialize the dca process in the same way as above */
 
-// Initialize the dca process in the same way as above
-
-// swap sol to tokens
+/*3. swap sol to tokens */
 const {
-    data: { signature },
-    status,
-} = await dcaOnlineClient.swapFromSol(
-    wallet.publicKey,
-    mint1,
-    dcaAccountB);
+	data: { signature },
+	status,
+} = await dcaOnlineClient.swapFromSol(wallet.publicKey, mint1, dcaAccount);
 
-// withdraw tokens
+/*4. withdraw tokens */
 const {
-    data: { signature },
-    status,
-} = await dcaOnlineClient.withdrawToken(
-    wallet.publicKey,
-    mint1,
-    dcaAccountB,
-    //ui amount to withdraw
-    new BigNumber(0.001));
+	data: { signature },
+	status,
+} = await dcaOnlineClient.withdrawToken(wallet.publicKey, mint1, dcaAccount, new BigNumber(0.001));
 
-// fund sol
+/*5. fund sol */
 const {
-    data: { signature },
-    status,
-} = await dcaOnlineClient.fundSol(
-    wallet.publicKey,
-    mint1,
-    dcaAccountB,
-    // ui amount to withdraw
-    new BigNumber(0.000001));
+	data: { signature },
+	status,
+} = await dcaOnlineClient.fundSol(wallet.publicKey, mint1, dcaAccount, new BigNumber(0.000001));
 
-// end exchanging from sol to tokens
-
+/*** end exchanging from sol to tokens ***/
 ```
 
 ### Using Instruction Factory
 
 Comming Soon...
+
+## Development
+
+Install dependencies:
+
+```
+npm install
+```
+
+Build project:
+
+```
+npm run build
+```
+
+Format project:
+
+```
+npm run format
+```
+
+Run tests
+
+```
+npm run test
+```
+
+## Contribution
+
+Feel free to fork the repo and make contributions to the repository. If you found any issue or bug, open an issue on the github. Please mention the specfic steps to generate that issue. Any feedbacks like suggestions for features and ideas for improvement are also welcomed.
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)
