@@ -64,7 +64,7 @@ export class DcaOnlineClient extends DcaClient {
 				status: "success",
 				data: {
 					signature: signature,
-					dcaAccount: dcaAccount,
+					dcaAccount: dcaAccount.publicKey,
 				},
 			};
 		} catch (e) {
@@ -85,7 +85,7 @@ export class DcaOnlineClient extends DcaClient {
 				status: "success",
 				data: {
 					signature: signature,
-					dcaAccount: dcaAccount,
+					dcaAccount: dcaAccount.publicKey,
 				},
 			};
 		} catch (e) {

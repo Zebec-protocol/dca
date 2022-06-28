@@ -7,7 +7,7 @@ import { Keypair, PublicKey, SystemProgram, Transaction } from "@solana/web3.js"
 
 import { syncNative, transfer } from "../../node_modules/@solana/spl-token";
 import { DcaClientFactory } from "../../src/clients";
-import { connection } from "../../src/constants";
+import { CONNECTION as connection } from "../../src/constants";
 import { findAssociatedTokenAddress } from "../../src/utils";
 
 dotenv.config();
@@ -37,25 +37,19 @@ async function isConfirmed(signature: string) {
 
 // RAY to SOL dca account
 const dcaAccountA = new PublicKey("AtTJrt7hSCpT4pYB3R7S3Xi59dgp7jVRAEGKJSyjH1nX");
-
-// SOL to USDC
-const dcaAccountB = new PublicKey("B4mAeTp58jJuoXsLqQnhuytj67TpGQnzqoJDg9FMyzRy");
-
 // RAY
 const MINT1 = new PublicKey("4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R");
-
-// USDC
-const MINT2 = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
-
 // Ray ATA
 const dcaWRAYTokenVault = new PublicKey("4VYm4kZYaAgsS29wGB8Lx1EBFw1HwWGURZYcKfMMu8aV");
-
-// Usdc ATA
-const dcaUsdcTokenVault = new PublicKey("G9P2beimN11HN64mrkMpGCJUx7fVsgVxXdToRkUGswaJ");
-
 // WSOL ATA
 const dca1WSolVault = new PublicKey("9ebkPugoYKebFGuYXNw8weLp3L8vBts11VYyKrQPgtnk");
 
+// SOL to USDC
+const dcaAccountB = new PublicKey("B4mAeTp58jJuoXsLqQnhuytj67TpGQnzqoJDg9FMyzRy");
+// USDC
+const MINT2 = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+// Usdc ATA
+const dcaUsdcTokenVault = new PublicKey("G9P2beimN11HN64mrkMpGCJUx7fVsgVxXdToRkUGswaJ");
 // WSOL ATA
 const dca2WSolVault = new PublicKey("68YY25k1bSYFDNV8zt7SqqZWx4QuLGFzVWoCxGAdhhnc");
 
@@ -74,7 +68,7 @@ describe("Dca online client test", async () => {
 				data: { signature, dcaAccount },
 				status,
 			} = await dcaOfflineClient.depositSol(ownerKeypair.publicKey, MINT2, new BigNumber("0.0001"));
-			const accountInfo = await connection.getAccountInfo(dcaAccount.publicKey);
+			const accountInfo = await connection.getAccountInfo(dcaAccount);
 			expect(accountInfo).not.to.be.null;
 			expect(status).to.equal(expectedStatus);
 			expect(signature).not.to.be.undefined;
@@ -89,7 +83,7 @@ describe("Dca online client test", async () => {
 				data: { dcaAccount, signature },
 				status,
 			} = await dcaOfflineClient.depositToken(ownerKeypair.publicKey, MINT1, new BigNumber("0.0001"));
-			const accountInfo = await connection.getAccountInfo(dcaAccount.publicKey);
+			const accountInfo = await connection.getAccountInfo(dcaAccount);
 			expect(accountInfo).not.to.be.null;
 			expect(status).to.equal(expectedStatus);
 			expect(signature).not.to.be.undefined;

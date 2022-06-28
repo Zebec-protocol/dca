@@ -1,7 +1,7 @@
 export * from "./constants";
 export * from "./instruction";
-export * from "./models/dca-account";
+export * from "./models";
 export * from "./utils";
-export * from "./clients/base";
+export * from "./clients";
 
 console.log("Its running");

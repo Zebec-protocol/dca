@@ -1,17 +1,17 @@
 import BigNumber from "bignumber.js";
 
-import { Commitment, Connection, Keypair, PublicKey, Signer, Transaction } from "@solana/web3.js";
+import { Commitment, Connection, PublicKey, Signer, Transaction } from "@solana/web3.js";
 
 import { DcaClient } from "./base";
 
 export class DcaOfflineClient extends DcaClient {
-	private _payer: Keypair;
+	private _payer: Signer;
 
 	constructor(params: {
 		connection: Connection;
 		commitment: Commitment;
 		preflightCommitment: Commitment;
-		payer: Keypair;
+		payer: Signer;
 	}) {
 		super({
 			connection: params.connection,
@@ -57,7 +57,7 @@ export class DcaOfflineClient extends DcaClient {
 				status: "success",
 				data: {
 					signature: signature,
-					dcaAccount: dcaAccount,
+					dcaAccount: dcaAccount.publicKey,
 				},
 			};
 		} catch (e) {
@@ -78,7 +78,7 @@ export class DcaOfflineClient extends DcaClient {
 				status: "success",
 				data: {
 					signature: signature,
-					dcaAccount: dcaAccount,
+					dcaAccount: dcaAccount.publicKey,
 				},
 			};
 		} catch (e) {
