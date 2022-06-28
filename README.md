@@ -173,4 +173,10 @@ const {
     // ui amount to withdraw
     new BigNumber(0.000001));
 
+// end exchanging from sol to tokens
+
 ```
+
+### Using Instruction Factory
+
+Comming Soon...
