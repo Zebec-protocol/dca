@@ -1,9 +1,21 @@
 import BigNumber from "bignumber.js";
 import { BN } from "bn.js";
 
-import { Liquidity, Percent, Token, TokenAmount } from "@raydium-io/raydium-sdk";
+import {
+	Liquidity,
+	Percent,
+	Token,
+	TokenAmount,
+} from "@raydium-io/raydium-sdk";
 import { NATIVE_MINT } from "@solana/spl-token";
-import { Commitment, Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, Transaction } from "@solana/web3.js";
+import {
+	Commitment,
+	Connection,
+	Keypair,
+	LAMPORTS_PER_SOL,
+	PublicKey,
+	Transaction,
+} from "@solana/web3.js";
 
 import { DcaInstruction } from "../instruction";
 import { DcaAccount } from "../models/dca-account";
@@ -111,12 +123,6 @@ export abstract class DcaClient {
 		dcaTime: BigNumber,
 	) {
 		try {
-			console.log("owner", owner.toString());
-			console.log("mint", mint.toString());
-			console.log("dca account", dcaAccount.toString());
-			console.log("start time", startTime.toFixed());
-			console.log("dca amount", dcaAmount.toFixed());
-			console.log("dca time", dcaTime.toFixed());
 			const vault = await findVaultAddress(owner, dcaAccount);
 			const _startTime = new BN(startTime.toFixed());
 			const _dcaTime = new BN(dcaTime.toFixed());
@@ -218,7 +224,7 @@ export abstract class DcaClient {
 			const amount = new BigNumber(dcaInfo.dcaAmount.toString()).div(new BigNumber(LAMPORTS_PER_SOL));
 			const amountIn = new TokenAmount(new Token(poolKeys.baseMint, poolInfo.baseDecimals), amount.toFixed(), false);
 			const currencyOut = new Token(poolKeys.quoteMint, poolInfo.quoteDecimals);
-			const slippage = new Percent(5, 100);
+			const slippage = new Percent(1, 100);
 			const { amountOut, minAmountOut, currentPrice, executionPrice, priceImpact, fee } = Liquidity.computeAmountOut({
 				poolKeys,
 				poolInfo,
@@ -279,7 +285,7 @@ export abstract class DcaClient {
 		const amount = new BigNumber(dcaInfo.dcaAmount.toString()).div(new BigNumber(10 ** mintInfo.decimals));
 		const amountIn = new TokenAmount(new Token(poolKeys.baseMint, poolInfo.baseDecimals), amount.toString(), false);
 		const currencyOut = new Token(poolKeys.quoteMint, poolInfo.quoteDecimals);
-		const slippage = new Percent(5, 100);
+		const slippage = new Percent(1, 100);
 		const { amountOut, minAmountOut, currentPrice, executionPrice, priceImpact, fee } = Liquidity.computeAmountOut({
 			poolKeys,
 			poolInfo,
