@@ -1,9 +1,19 @@
 import BigNumber from "bignumber.js";
 
 import { WalletNotConnectedError } from "@solana/wallet-adapter-base";
-import { Commitment, Connection, PublicKey, Signer, Transaction } from "@solana/web3.js";
+import {
+	Commitment,
+	Connection,
+	PublicKey,
+	Signer,
+	Transaction,
+} from "@solana/web3.js";
 
-import { DcaClient, IWalletAdapter } from "./base";
+import { DcaFlag } from "../models";
+import {
+	DcaClient,
+	IWalletAdapter,
+} from "./base";
 
 export class DcaOnlineClient extends DcaClient {
 	private _wallet: IWalletAdapter;
@@ -100,12 +110,21 @@ export class DcaOnlineClient extends DcaClient {
 		owner: PublicKey,
 		mint: PublicKey,
 		dcaAccount: PublicKey,
+		flag: DcaFlag,
 		startTime: BigNumber,
 		dcaAmount: BigNumber,
 		dcaTime: BigNumber,
 	) {
 		try {
-			const transaction = await this.makeInitializeTransaction(owner, mint, dcaAccount, startTime, dcaAmount, dcaTime);
+			const transaction = await this.makeInitializeTransaction(
+				owner,
+				mint,
+				dcaAccount,
+				flag,
+				startTime,
+				dcaAmount,
+				dcaTime,
+			);
 
 			const signature = await this.signAndSendTransaction(transaction);
 

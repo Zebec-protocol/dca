@@ -1,7 +1,14 @@
 import BigNumber from "bignumber.js";
 
-import { Commitment, Connection, PublicKey, Signer, Transaction } from "@solana/web3.js";
+import {
+	Commitment,
+	Connection,
+	PublicKey,
+	Signer,
+	Transaction,
+} from "@solana/web3.js";
 
+import { DcaFlag } from "../models";
 import { DcaClient } from "./base";
 
 export class DcaOfflineClient extends DcaClient {
@@ -94,12 +101,21 @@ export class DcaOfflineClient extends DcaClient {
 		owner: PublicKey,
 		mint: PublicKey,
 		dcaAccount: PublicKey,
+		flag: DcaFlag,
 		startTime: BigNumber,
 		dcaAmount: BigNumber,
 		dcaTime: BigNumber,
 	) {
 		try {
-			const transaction = await this.makeInitializeTransaction(owner, mint, dcaAccount, startTime, dcaAmount, dcaTime);
+			const transaction = await this.makeInitializeTransaction(
+				owner,
+				mint,
+				dcaAccount,
+				flag,
+				startTime,
+				dcaAmount,
+				dcaTime,
+			);
 
 			const signature = await this.sendTransaction(transaction, [this._payer]);
 
