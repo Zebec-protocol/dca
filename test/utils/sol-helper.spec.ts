@@ -1,7 +1,9 @@
 import BigNumber from "bignumber.js";
 import { BN } from "bn.js";
 import { expect } from "chai";
-import { convertToLamports, convertToDecimal } from "../../src/utils";
+import { describe, it } from "mocha";
+
+import { convertToDecimal, convertToLamports } from "../../src/utils";
 
 describe("Sol Helper utils test", () => {
 	describe("convertToLamports()", () => {

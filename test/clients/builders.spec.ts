@@ -1,11 +1,11 @@
 import { expect } from "chai";
-import { describe } from "mocha";
+import { describe, it } from "mocha";
 
 import { Keypair, PublicKey } from "@solana/web3.js";
 
 import { DcaClientFactory, DcaOnlineClient } from "../../src/clients";
 import { DcaOfflineClient } from "../../src/clients/offline-client";
-import { connection } from "../../src/constants";
+import { CONNECTION as connection } from "../../src/constants";
 
 describe("Dca client factory test", () => {
 	const dcaOfflineClient = new DcaClientFactory().setConnection(connection).buildOfflineClient(Keypair.generate());

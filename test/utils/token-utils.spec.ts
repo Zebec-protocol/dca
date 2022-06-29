@@ -1,6 +1,8 @@
-import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
 import { expect } from "chai";
-import { describe } from "mocha";
+import { describe, it } from "mocha";
+
+import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
+
 import { getMintInfo } from "../../src/utils";
 
 describe("tokenUtils unit test", () => {

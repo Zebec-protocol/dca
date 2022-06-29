@@ -26,7 +26,8 @@ export class DcaOfflineClient extends DcaClient {
 			const blockhash = await this._connection.getLatestBlockhash();
 			txn.recentBlockhash = blockhash.blockhash;
 			txn.lastValidBlockHeight = blockhash.lastValidBlockHeight;
-			const signature = await this._connection.sendTransaction(txn, signers, {
+			txn.sign(...signers);
+			const signature = await this._connection.sendRawTransaction(txn.serialize(), {
 				preflightCommitment: this._commitment,
 				skipPreflight: false,
 			});

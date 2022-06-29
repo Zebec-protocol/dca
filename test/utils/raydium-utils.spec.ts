@@ -1,7 +1,10 @@
+import { expect } from "chai";
+import { describe, it } from "mocha";
+
 import { LiquidityPoolKeys } from "@raydium-io/raydium-sdk";
 import { PublicKey } from "@solana/web3.js";
-import { expect } from "chai";
-import { connection } from "../../src/constants";
+
+import { CONNECTION as connection } from "../../src/constants";
 import { fetchPoolKeys, findPoolIdByBaseAndQuoteMint } from "../../src/utils";
 
 describe("Raydium utils test", () => {

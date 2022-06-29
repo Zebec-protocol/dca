@@ -1,6 +1,9 @@
-import { PublicKey } from "@solana/web3.js";
 import { expect } from "chai";
-import { findProgramAddress, findAssociatedTokenAddress } from "../../src/utils";
+import { describe, it } from "mocha";
+
+import { PublicKey } from "@solana/web3.js";
+
+import { findAssociatedTokenAddress, findProgramAddress } from "../../src/utils";
 
 describe("pda utils unit test", () => {
 	describe("findProgramAddress()", () => {

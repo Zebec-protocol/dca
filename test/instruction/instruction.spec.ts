@@ -1,7 +1,10 @@
-import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { AccountMeta, Keypair, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 import BN from "bn.js";
 import { expect } from "chai";
+import { describe, it } from "mocha";
+
+import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { AccountMeta, Keypair, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+
 import { DCA_PROGRAM_ID } from "../../src/constants";
 import {
 	DepositSolData,

@@ -1,6 +1,8 @@
-import { PublicKey } from "@solana/web3.js";
 import { expect } from "chai";
-import { describe } from "mocha";
+import { describe, it } from "mocha";
+
+import { PublicKey } from "@solana/web3.js";
+
 import { AccountMetaFactory } from "../../src/utils";
 
 describe("Account Meta Factory utils test", () => {

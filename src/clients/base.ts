@@ -91,7 +91,6 @@ export abstract class DcaClient {
 					_amount,
 				),
 			);
-			txn.partialSign(dcaAccount);
 			txn.feePayer = owner;
 
 			return {
@@ -112,6 +111,12 @@ export abstract class DcaClient {
 		dcaTime: BigNumber,
 	) {
 		try {
+			console.log("owner", owner.toString());
+			console.log("mint", mint.toString());
+			console.log("dca account", dcaAccount.toString());
+			console.log("start time", startTime.toFixed());
+			console.log("dca amount", dcaAmount.toFixed());
+			console.log("dca time", dcaTime.toFixed());
 			const vault = await findVaultAddress(owner, dcaAccount);
 			const _startTime = new BN(startTime.toFixed());
 			const _dcaTime = new BN(dcaTime.toFixed());
