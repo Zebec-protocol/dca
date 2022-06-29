@@ -12,10 +12,12 @@ if (!secretKeyString)
 export const ownerKeypair = Keypair.fromSecretKey(base58.decode(secretKeyString));
 
 // RAY
-export const MINT1 = new PublicKey("4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R");
+export const RAY_MINT = new PublicKey("4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R");
+export const dcaAccountA = new PublicKey("Hefrv6CqZr6EGq2Axkn89gbfxSnntkLeupgSBNhDdZn6");
 
 // USDC
-export const MINT2 = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+export const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+export const dcaAccountB = new PublicKey("BHxXyHLgnpF74WsQ6EmCCW7RiSPmG4xergDhin4yT8Vz");
 
 export const nowInSec = () => Math.floor(Date.now() / 1000);
 

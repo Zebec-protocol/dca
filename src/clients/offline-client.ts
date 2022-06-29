@@ -1,12 +1,6 @@
 import BigNumber from "bignumber.js";
 
-import {
-	Commitment,
-	Connection,
-	PublicKey,
-	Signer,
-	Transaction,
-} from "@solana/web3.js";
+import { Commitment, Connection, PublicKey, Signer, Transaction } from "@solana/web3.js";
 
 import { DcaFlag } from "../models";
 import { DcaClient } from "./base";

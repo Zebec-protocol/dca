@@ -2,80 +2,193 @@ import BigNumber from "bignumber.js";
 import { expect } from "chai";
 import { describe, it } from "mocha";
 
+import { PublicKey, SendTransactionError } from "@solana/web3.js";
+
 import { DcaClientFactory } from "../../src/clients";
 import { CONNECTION as connection } from "../../src/constants";
-import { expectedStatus, MINT1, MINT2, nowInSec, ownerKeypair } from "./shared";
+import { DcaFlag } from "../../src/models";
+import { expectedStatus, nowInSec, ownerKeypair, RAY_MINT, USDC_MINT } from "./shared";
 
-const dcaOfflineClient = new DcaClientFactory()
+const offlineDcaClient = new DcaClientFactory()
 	.setConnection(connection)
 	.setCommitment("finalized")
 	.setPreflightCommitment("finalized")
 	.buildOfflineClient(ownerKeypair);
 
+const dcaAccounts: PublicKey[] = [];
+
 describe("Dca offline client", async () => {
 	describe("Test from token to sol process", () => {
-		it("should pass", async () => {
-			const {
-				data: { dcaAccount, signature },
-				status,
-			} = await dcaOfflineClient.depositToken(ownerKeypair.publicKey, MINT1, new BigNumber("0.001"));
-			console.log("dca account", dcaAccount.toString());
-			expect(status).to.equal(expectedStatus);
-			expect(signature).not.to.be.undefined;
-
-			const {
-				data: { signature: signature1 },
-				status: status1,
-			} = await dcaOfflineClient.initialize(
-				ownerKeypair.publicKey,
-				MINT1,
-				dcaAccount,
-				new BigNumber(nowInSec() + 120),
-				new BigNumber(0.001),
-				new BigNumber(3000),
-			);
-			expect(status1).to.equal(expectedStatus);
-			expect(signature1).not.to.be.undefined;
-
-			const {
-				data: { signature: signature4 },
-				status: status4,
-			} = await dcaOfflineClient.fundToken(ownerKeypair.publicKey, MINT1, dcaAccount, new BigNumber(0.001));
-			expect(status4).to.equal(expectedStatus);
-			expect(signature4).not.to.be.undefined;
+		it("depositToken()", async () => {
+			try {
+				const {
+					data: { dcaAccount, signature },
+					status,
+				} = await offlineDcaClient.depositToken(ownerKeypair.publicKey, RAY_MINT, new BigNumber("0.001"));
+				dcaAccounts[0] = dcaAccount;
+				console.log("dca account", dcaAccount.toString());
+				expect(status).to.equal(expectedStatus);
+				expect(signature).not.to.be.undefined;
+			} catch (error) {
+				console.log(error instanceof SendTransactionError ? error.logs : error);
+				throw error;
+			}
 		});
+
+		it("initialize()", async () => {
+			try {
+				const {
+					data: { signature: signature1 },
+					status: status1,
+				} = await offlineDcaClient.initialize(
+					ownerKeypair.publicKey,
+					RAY_MINT,
+					dcaAccounts[0],
+					DcaFlag["MINT-SOL"],
+					new BigNumber(nowInSec() + 5),
+					new BigNumber(0.001),
+					new BigNumber(3000),
+				);
+				expect(status1).to.equal(expectedStatus);
+				expect(signature1).not.to.be.undefined;
+			} catch (error) {
+				console.log(error instanceof SendTransactionError ? error.logs : error);
+				throw error;
+			}
+		});
+
+		// it("fundToken()", async () => {
+		// 	try {
+		// 		const {
+		// 			data: { signature: signature4 },
+		// 			status: status4,
+		// 		} = await offlineDcaClient.fundToken(ownerKeypair.publicKey, RAY_MINT, dcaAccountA, new BigNumber(0.001));
+		// 		expect(status4).to.equal(expectedStatus);
+		// 		expect(signature4).not.to.be.undefined;
+		// 	} catch (error) {
+		// 	console.log(error instanceof SendTransactionError ? error.logs : error);
+		// 		throw error;
+		// 	}
+		// });
+
+		// it("swapToSol()", async () => {
+		// 	try {
+		// 		const {
+		// 			data: { signature: signature2 },
+		// 			status: status2,
+		// 		} = await offlineDcaClient.swapToSol(ownerKeypair.publicKey, RAY_MINT, dcaAccountA);
+		// 		expect(status2).to.equal("success");
+		// 		expect(signature2).not.to.be.undefined;
+		// 	} catch (error) {
+		// 	console.log(error instanceof SendTransactionError ? error.logs : error);
+		// 		throw error;
+		// 	}
+		// });
+
+		// it("withdrawSol()", async () => {
+		// 	try {
+		// 		const {
+		// 			data: { signature: signature3 },
+		// 			status: status3,
+		// 		} = await offlineDcaClient.withdrawSol(
+		// 			ownerKeypair.publicKey,
+		// 			RAY_MINT,
+		// 			dcaAccountA,
+		// 			new BigNumber("0.0000001"),
+		// 		);
+		// 		expect(status3).to.equal(expectedStatus);
+		// 		expect(signature3).not.to.be.undefined;
+		// 	} catch (error) {
+		// 	console.log(error instanceof SendTransactionError ? error.logs : error);
+		// 		throw error;
+		// 	}
+		// });
 	});
 
 	describe("Test from sol to token process", () => {
-		it("should pass", async () => {
-			const {
-				data: { signature, dcaAccount },
-				status,
-			} = await dcaOfflineClient.depositSol(ownerKeypair.publicKey, MINT2, new BigNumber("0.00001"));
-			console.log("dca account", dcaAccount.toString());
-			expect(status).to.equal(expectedStatus);
-			expect(signature).not.to.be.undefined;
-
-			const {
-				data: { signature: signature1 },
-				status: status1,
-			} = await dcaOfflineClient.initialize(
-				ownerKeypair.publicKey,
-				MINT2,
-				dcaAccount,
-				new BigNumber(nowInSec() + 120),
-				new BigNumber(0.00001),
-				new BigNumber(3000),
-			);
-			expect(status1).to.equal(expectedStatus);
-			expect(signature1).not.to.be.undefined;
-
-			const {
-				data: { signature: signature4 },
-				status: status4,
-			} = await dcaOfflineClient.fundSol(ownerKeypair.publicKey, MINT2, dcaAccount, new BigNumber(0.000001));
-			expect(status4).to.equal(expectedStatus);
-			expect(signature4).not.to.be.undefined;
+		it("depositSol()", async () => {
+			try {
+				const {
+					data: { signature, dcaAccount },
+					status,
+				} = await offlineDcaClient.depositSol(ownerKeypair.publicKey, USDC_MINT, new BigNumber("0.00001"));
+				dcaAccounts[1] = dcaAccount;
+				console.log("dca account", dcaAccount.toString());
+				expect(status).to.equal(expectedStatus);
+				expect(signature).not.to.be.undefined;
+			} catch (error) {
+				console.log(error instanceof SendTransactionError ? error.logs : error);
+				throw error;
+			}
 		});
+
+		it("initialize()", async () => {
+			try {
+				const {
+					data: { signature: signature1 },
+					status: status1,
+				} = await offlineDcaClient.initialize(
+					ownerKeypair.publicKey,
+					USDC_MINT,
+					dcaAccounts[1],
+					DcaFlag["SOL-MINT"],
+					new BigNumber(nowInSec() + 5),
+					new BigNumber(0.00001),
+					new BigNumber(3000),
+				);
+				expect(status1).to.equal(expectedStatus);
+				expect(signature1).not.to.be.undefined;
+			} catch (error) {
+				console.log(error instanceof SendTransactionError ? error.logs : error);
+				throw error;
+			}
+		});
+
+		// it("fundSol()", async () => {
+		// 	try {
+		// 		const {
+		// 			data: { signature: signature4 },
+		// 			status: status4,
+		// 		} = await offlineDcaClient.fundSol(ownerKeypair.publicKey, USDC_MINT, dcaAccountB, new BigNumber(0.000001));
+		// 		expect(status4).to.equal(expectedStatus);
+		// 		expect(signature4).not.to.be.undefined;
+		// 	} catch (error) {
+		// 		console.log(error instanceof SendTransactionError ? error.logs : error);
+		// 		throw error;
+		// 	}
+		// });
+
+		// 	it("swapFromSol()", async () => {
+		// 		try {
+		// 			const {
+		// 				data: { signature: signature2 },
+		// 				status: status2,
+		// 			} = await offlineDcaClient.swapFromSol(ownerKeypair.publicKey, USDC_MINT, dcaAccountB);
+		// 			expect(status2).to.equal(expectedStatus);
+		// 			expect(signature2).not.to.be.undefined;
+		// 		} catch (error) {
+		// 			console.log(error instanceof SendTransactionError ? error.logs : error);
+		// 			throw error;
+		// 		}
+		// 	});
+
+		// 	it("withdrawToken()", async () => {
+		// 		try {
+		// 			const {
+		// 				data: { signature: signature3 },
+		// 				status: status3,
+		// 			} = await offlineDcaClient.withdrawToken(
+		// 				ownerKeypair.publicKey,
+		// 				USDC_MINT,
+		// 				dcaAccountB,
+		// 				new BigNumber("0.00001"),
+		// 			);
+		// 			expect(status3).to.equal(expectedStatus);
+		// 			expect(signature3).not.to.be.undefined;
+		// 		} catch (error) {
+		// 			console.log(error instanceof SendTransactionError ? error.logs : error);
+		// 			throw error;
+		// 		}
+		// 	});
 	});
 });

@@ -215,13 +215,10 @@ export abstract class DcaClient {
 			if (dcaInfo.dcaAmount.toString() === "0") {
 				throw new Error("Dca amount is zero");
 			}
-			console.log(dcaInfo.dcaAmount.toString());
 			const uiAmount = new BigNumber(dcaInfo.dcaAmount.toString()).div(new BigNumber(LAMPORTS_PER_SOL));
-			console.log(uiAmount.toFixed());
-			console.log(poolInfo.baseDecimals);
 			const amountIn = new TokenAmount(new Token(poolKeys.baseMint, poolInfo.baseDecimals), uiAmount.toFixed(), false);
 			const currencyOut = new Token(poolKeys.quoteMint, poolInfo.quoteDecimals);
-			const slippage = new Percent(3, 100);
+			const slippage = new Percent(1, 100);
 			const { minAmountOut } = Liquidity.computeAmountOut({
 				poolKeys,
 				poolInfo,
@@ -284,7 +281,7 @@ export abstract class DcaClient {
 		const uiAmount = new BigNumber(dcaInfo.dcaAmount.toString()).div(new BigNumber(10 ** mintInfo.decimals));
 		const amountIn = new TokenAmount(new Token(poolKeys.baseMint, poolInfo.baseDecimals), uiAmount.toString(), false);
 		const currencyOut = new Token(poolKeys.quoteMint, poolInfo.quoteDecimals);
-		const slippage = new Percent(3, 100);
+		const slippage = new Percent(1, 100);
 		const { minAmountOut } = Liquidity.computeAmountOut({
 			poolKeys,
 			poolInfo,
