@@ -5,6 +5,11 @@ import { Commitment, Connection, PublicKey } from "@solana/web3.js";
 
 import { DCA_PROGRAM_ID } from "../constants";
 
+export enum DcaFlag {
+	"SOL-MINT" = 1,
+	"MINT-SOL" = 2,
+}
+
 /**
  * The class for the dca account state in DCA program
  */

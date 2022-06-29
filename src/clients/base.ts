@@ -1,24 +1,12 @@
 import BigNumber from "bignumber.js";
-import { BN } from "bn.js";
+import BN from "bn.js";
 
-import {
-	Liquidity,
-	Percent,
-	Token,
-	TokenAmount,
-} from "@raydium-io/raydium-sdk";
+import { Liquidity, Percent, Token, TokenAmount } from "@raydium-io/raydium-sdk";
 import { NATIVE_MINT } from "@solana/spl-token";
-import {
-	Commitment,
-	Connection,
-	Keypair,
-	LAMPORTS_PER_SOL,
-	PublicKey,
-	Transaction,
-} from "@solana/web3.js";
+import { Commitment, Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, Transaction } from "@solana/web3.js";
 
 import { DcaInstruction } from "../instruction";
-import { DcaAccount } from "../models/dca-account";
+import { DcaAccount, DcaFlag } from "../models/dca-account";
 import {
 	convertToLamports,
 	fetchPoolKeys,
@@ -118,6 +106,7 @@ export abstract class DcaClient {
 		owner: PublicKey,
 		mint: PublicKey,
 		dcaAccount: PublicKey,
+		flag: DcaFlag,
 		startTime: BigNumber,
 		dcaAmount: BigNumber,
 		dcaTime: BigNumber,
@@ -126,9 +115,14 @@ export abstract class DcaClient {
 			const vault = await findVaultAddress(owner, dcaAccount);
 			const _startTime = new BN(startTime.toFixed());
 			const _dcaTime = new BN(dcaTime.toFixed());
-			const mintInfo = await getMintInfo(this._connection, mint);
-			const _dcaAmount = convertToLamports(dcaAmount, mintInfo.decimals);
-			const minimumAmountOut = convertToLamports(dcaAmount, mintInfo.decimals);
+			let _dcaAmount = new BN(0);
+			if (flag == DcaFlag["MINT-SOL"]) {
+				const mintInfo = await getMintInfo(this._connection, mint);
+				_dcaAmount = convertToLamports(dcaAmount, mintInfo.decimals);
+			} else {
+				_dcaAmount = convertToLamports(dcaAmount);
+			}
+			const minimumAmountOut = _dcaAmount;
 
 			let txn = new Transaction().add(
 				DcaInstruction.initialize(owner, vault, dcaAccount, _startTime, _dcaAmount, _dcaTime, minimumAmountOut),
@@ -219,19 +213,24 @@ export abstract class DcaClient {
 			});
 			const dcaInfo = await DcaAccount.getDcaAccountInfo(this._connection, dcaAccount);
 			if (dcaInfo.dcaAmount.toString() === "0") {
-				throw new Error("Dca amout is zero");
+				throw new Error("Dca amount is zero");
 			}
-			const amount = new BigNumber(dcaInfo.dcaAmount.toString()).div(new BigNumber(LAMPORTS_PER_SOL));
-			const amountIn = new TokenAmount(new Token(poolKeys.baseMint, poolInfo.baseDecimals), amount.toFixed(), false);
+			console.log(dcaInfo.dcaAmount.toString());
+			const uiAmount = new BigNumber(dcaInfo.dcaAmount.toString()).div(new BigNumber(LAMPORTS_PER_SOL));
+			console.log(uiAmount.toFixed());
+			console.log(poolInfo.baseDecimals);
+			const amountIn = new TokenAmount(new Token(poolKeys.baseMint, poolInfo.baseDecimals), uiAmount.toFixed(), false);
 			const currencyOut = new Token(poolKeys.quoteMint, poolInfo.quoteDecimals);
-			const slippage = new Percent(1, 100);
-			const { amountOut, minAmountOut, currentPrice, executionPrice, priceImpact, fee } = Liquidity.computeAmountOut({
+			const slippage = new Percent(3, 100);
+			const { minAmountOut } = Liquidity.computeAmountOut({
 				poolKeys,
 				poolInfo,
 				amountIn,
 				currencyOut,
 				slippage,
 			});
+
+			console.log(minAmountOut.raw.toArray());
 
 			let txn = new Transaction().add(
 				DcaInstruction.swapFromSol(
@@ -282,17 +281,18 @@ export abstract class DcaClient {
 			throw new Error("Dca amount is zero");
 		}
 		const mintInfo = await getMintInfo(this._connection, mint);
-		const amount = new BigNumber(dcaInfo.dcaAmount.toString()).div(new BigNumber(10 ** mintInfo.decimals));
-		const amountIn = new TokenAmount(new Token(poolKeys.baseMint, poolInfo.baseDecimals), amount.toString(), false);
+		const uiAmount = new BigNumber(dcaInfo.dcaAmount.toString()).div(new BigNumber(10 ** mintInfo.decimals));
+		const amountIn = new TokenAmount(new Token(poolKeys.baseMint, poolInfo.baseDecimals), uiAmount.toString(), false);
 		const currencyOut = new Token(poolKeys.quoteMint, poolInfo.quoteDecimals);
-		const slippage = new Percent(1, 100);
-		const { amountOut, minAmountOut, currentPrice, executionPrice, priceImpact, fee } = Liquidity.computeAmountOut({
+		const slippage = new Percent(3, 100);
+		const { minAmountOut } = Liquidity.computeAmountOut({
 			poolKeys,
 			poolInfo,
 			amountIn,
 			currencyOut,
 			slippage,
 		});
+		console.log(minAmountOut.raw.toArray());
 
 		let txn = new Transaction().add(
 			DcaInstruction.swapToSol(
