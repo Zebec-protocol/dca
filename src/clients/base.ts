@@ -1,17 +1,27 @@
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
 
-import { Liquidity, Percent, Token, TokenAmount } from "@raydium-io/raydium-sdk";
+import { Liquidity, LiquidityPoolKeysV4, Percent, Token, TokenAmount } from "@raydium-io/raydium-sdk";
 import { NATIVE_MINT } from "@solana/spl-token";
-import { Commitment, Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, Transaction } from "@solana/web3.js";
+import {
+	clusterApiUrl,
+	Commitment,
+	Connection,
+	Keypair,
+	LAMPORTS_PER_SOL,
+	PublicKey,
+	Transaction,
+} from "@solana/web3.js";
 
 import { DcaInstruction } from "../instruction";
 import { DcaAccount, DcaFlag } from "../models/dca-account";
 import {
 	convertToLamports,
 	fetchPoolKeys,
+	fetchPoolKeysDevnet,
 	findAssociatedTokenAddress,
 	findPoolIdByBaseAndQuoteMint,
+	findPoolIdByBaseAndQuoteMintDevnet,
 	findVaultAddress,
 	getMintInfo,
 } from "../utils";
@@ -122,10 +132,9 @@ export abstract class DcaClient {
 			} else {
 				_dcaAmount = convertToLamports(dcaAmount);
 			}
-			const minimumAmountOut = _dcaAmount;
 
 			let txn = new Transaction().add(
-				DcaInstruction.initialize(owner, vault, dcaAccount, _startTime, _dcaAmount, _dcaTime, minimumAmountOut),
+				DcaInstruction.initialize(owner, vault, dcaAccount, _startTime, _dcaAmount, _dcaTime),
 			);
 
 			return txn;
@@ -205,8 +214,14 @@ export abstract class DcaClient {
 			const vault = await findVaultAddress(owner, dcaAccount);
 			const vaultNativeMintAccount = await findAssociatedTokenAddress(vault, NATIVE_MINT);
 			const vaultTokenAccount = await findAssociatedTokenAddress(vault, mint);
-			const poolKeyId = await findPoolIdByBaseAndQuoteMint(NATIVE_MINT, mint);
-			const poolKeys = await fetchPoolKeys(this._connection, new PublicKey(poolKeyId));
+			let poolKeys: LiquidityPoolKeysV4;
+			if (this._connection == new Connection(clusterApiUrl("devnet"))) {
+				const poolKeyId = await findPoolIdByBaseAndQuoteMintDevnet(mint, NATIVE_MINT);
+				poolKeys = await fetchPoolKeysDevnet(this._connection, new PublicKey(poolKeyId));
+			} else {
+				const poolKeyId = await findPoolIdByBaseAndQuoteMint(mint, NATIVE_MINT);
+				poolKeys = await fetchPoolKeys(this._connection, new PublicKey(poolKeyId));
+			}
 			const poolInfo = await Liquidity.fetchInfo({
 				connection: this._connection,
 				poolKeys,
@@ -265,8 +280,14 @@ export abstract class DcaClient {
 		const vault = await findVaultAddress(owner, dcaAccount);
 		const vaultTokenAccount = await findAssociatedTokenAddress(vault, mint);
 		const vaultNativeMintAccount = await findAssociatedTokenAddress(vault, NATIVE_MINT);
-		const poolKeyId = await findPoolIdByBaseAndQuoteMint(mint, NATIVE_MINT);
-		const poolKeys = await fetchPoolKeys(this._connection, new PublicKey(poolKeyId));
+		let poolKeys: LiquidityPoolKeysV4;
+		if (this._connection == new Connection(clusterApiUrl("devnet"))) {
+			const poolKeyId = await findPoolIdByBaseAndQuoteMintDevnet(mint, NATIVE_MINT);
+			poolKeys = await fetchPoolKeysDevnet(this._connection, new PublicKey(poolKeyId));
+		} else {
+			const poolKeyId = await findPoolIdByBaseAndQuoteMint(mint, NATIVE_MINT);
+			poolKeys = await fetchPoolKeys(this._connection, new PublicKey(poolKeyId));
+		}
 		const poolInfo = await Liquidity.fetchInfo({
 			connection: this._connection,
 			poolKeys,

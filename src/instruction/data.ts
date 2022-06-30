@@ -62,14 +62,12 @@ export class InitializeData {
 	private _startTime: BN;
 	private _dcaAmount: BN;
 	private _dcaTime: BN;
-	private _minimumAmountOut: BN;
 
-	constructor(startTime: BN, dcaAmount: BN, dcaTime: BN, minimumAmountOut: BN) {
+	constructor(startTime: BN, dcaAmount: BN, dcaTime: BN) {
 		this._instruction = InstructionTypes.Initialize;
 		this._startTime = startTime;
 		this._dcaAmount = dcaAmount;
 		this._dcaTime = dcaTime;
-		this._minimumAmountOut = minimumAmountOut;
 	}
 
 	public get instruction(): InstructionTypes {
@@ -83,9 +81,6 @@ export class InitializeData {
 	}
 	public get dcaTime(): BN {
 		return this._dcaTime;
-	}
-	public get minimumAmountOut(): BN {
-		return this._minimumAmountOut;
 	}
 
 	encode() {

@@ -8,7 +8,7 @@ import {
 	LiquidityStateLayout,
 	Market,
 } from "@raydium-io/raydium-sdk";
-import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
+import { AccountInfo, clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
 
 import { DEVNET_LIQUIDITY_PROGRAM_ID_V4, DEVNET_SERUM_PROGRAM_ID_V3 } from "../constants";
 
@@ -149,7 +149,7 @@ async function getAssociatedPoolKeys({
 	};
 }
 
-export async function fetchAllPoolKeysDevnet(connection: Connection, config: GetMultipleAccountsInfoConfig) {
+export async function fetchAllPoolKeysDevnet(connection: Connection, config?: GetMultipleAccountsInfoConfig) {
 	// supported versions
 	const supported = [
 		{
@@ -387,4 +387,17 @@ export async function fetchPoolKeysDevnet(connection: Connection, poolId: Public
 			marketEventQueue,
 		},
 	};
+}
+
+export async function findPoolIdByBaseAndQuoteMintDevnet(base: PublicKey, quote: PublicKey): Promise<string> {
+	try {
+		const poolKeysList = await fetchAllPoolKeysDevnet(new Connection(clusterApiUrl("devnet")));
+		const keys = poolKeysList.find(
+			(el) => el.baseMint.toString() == base.toString() && el.quoteMint.toString() == quote.toString(),
+		);
+		if (!keys) throw new Error("No liquidity pool found for given base and quote mint.");
+		return keys.id.toString();
+	} catch (err) {
+		throw err;
+	}
 }

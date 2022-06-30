@@ -103,9 +103,8 @@ export class DcaInstruction {
 		startTime: BN,
 		dcaAmount: BN,
 		dcaTime: BN,
-		minimumAmountOut: BN,
 	) {
-		const data = new InitializeData(startTime, dcaAmount, dcaTime, minimumAmountOut).encode();
+		const data = new InitializeData(startTime, dcaAmount, dcaTime).encode();
 		const keys = [
 			AccountMetaFactory.newWritable(source, true),
 			AccountMetaFactory.newWritable(vault, false),
