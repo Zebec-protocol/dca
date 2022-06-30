@@ -227,8 +227,6 @@ export abstract class DcaClient {
 				slippage,
 			});
 
-			console.log(minAmountOut.raw.toArray());
-
 			let txn = new Transaction().add(
 				DcaInstruction.swapFromSol(
 					poolKeys.programId, // liquidityProgramId
@@ -289,7 +287,6 @@ export abstract class DcaClient {
 			currencyOut,
 			slippage,
 		});
-		console.log(minAmountOut.raw.toArray());
 
 		let txn = new Transaction().add(
 			DcaInstruction.swapToSol(
