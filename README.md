@@ -18,7 +18,7 @@ yarn add @zebec-protocol/dca @solana/web3.js bignumber.js
 
 The dca client can be buit in using dca client factory. Dca client is of two types: Online and Offine. The online client uses wallet adapter and the offline client uses a signer.
 
-Any wallet adapter can be provided to build the online dca client unless it implements the wallet adapter interface given below:
+Any wallet adapter can be provided to build the online dca client unless it implements the interface given below:
 
 ```js
 export interface IWalletAdapter {
