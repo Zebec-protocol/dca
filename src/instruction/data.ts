@@ -243,7 +243,6 @@ const initializeSchema = new Map([
 				["startTime", "u64"],
 				["dcaAmount", "u64"],
 				["dcaTime", "u64"],
-				["minimumAmountOut", "u64"],
 			],
 		},
 	],
