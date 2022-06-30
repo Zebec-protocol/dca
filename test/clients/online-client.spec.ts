@@ -5,9 +5,17 @@ import { describe, it } from "mocha";
 import { PublicKey, SendTransactionError, Transaction } from "@solana/web3.js";
 
 import { DcaClientFactory } from "../../src/clients";
-import { CONNECTION as connection } from "../../src/constants";
 import { DcaFlag } from "../../src/models";
-import { dcaAccountA, dcaAccountD, expectedStatus, nowInSec, ownerKeypair, RAY_MINT, USDC_MINT } from "./shared";
+import {
+	connection,
+	dcaAccountA,
+	dcaAccountD,
+	expectedStatus,
+	nowInSec,
+	ownerKeypair,
+	RAY_MINT,
+	USDC_MINT,
+} from "./shared";
 
 const wallet = {
 	publicKey: ownerKeypair.publicKey,
@@ -37,21 +45,21 @@ const dcaAccounts: PublicKey[] = [];
 
 describe("Dca online client", async () => {
 	describe("Test from token to sol process", () => {
-		// it("depositToken()", async () => {
-		// 	try {
-		// 		const {
-		// 			data: { dcaAccount, signature },
-		// 			status,
-		// 		} = await onlineDcaClient.depositToken(wallet.publicKey, RAY_MINT, new BigNumber("0.0001"));
-		// 		dcaAccounts[0] = dcaAccount;
-		// 		console.log("dca account", dcaAccount.toString());
-		// 		expect(status).to.equal(expectedStatus);
-		// 		expect(signature).not.to.be.undefined;
-		// 	} catch (error) {
-		// 		console.log(error instanceof SendTransactionError ? error.logs : error);
-		// 		throw error;
-		// 	}
-		// });
+		it("depositToken()", async () => {
+			try {
+				const {
+					data: { dcaAccount, signature },
+					status,
+				} = await onlineDcaClient.depositToken(wallet.publicKey, RAY_MINT, new BigNumber("0.0001"));
+				dcaAccounts[0] = dcaAccount;
+				console.log("dca account", dcaAccount.toString());
+				expect(status).to.equal(expectedStatus);
+				expect(signature).not.to.be.undefined;
+			} catch (error) {
+				console.log(error instanceof SendTransactionError ? error.logs : error);
+				throw error;
+			}
+		});
 
 		it("fundToken()", async () => {
 			try {
@@ -75,7 +83,7 @@ describe("Dca online client", async () => {
 				} = await onlineDcaClient.initialize(
 					wallet.publicKey,
 					RAY_MINT,
-					dcaAccountA,
+					dcaAccounts[0],
 					DcaFlag["MINT-SOL"],
 					new BigNumber(nowInSec() + 1),
 					new BigNumber("0.0008"),
@@ -119,21 +127,25 @@ describe("Dca online client", async () => {
 	});
 
 	describe("Test from sol to token process", () => {
-		// it("depositSol()", async () => {
-		// 	try {
-		// 		const {
-		// 			data: { signature: signature, dcaAccount },
-		// 			status,
-		// 		} = await onlineDcaClient.depositSol(wallet.publicKey, USDC_MINT, new BigNumber("0.000001"));
-		// 		dcaAccounts[1] = dcaAccount;
-		// 		console.log("dcaAccount", dcaAccount.toString());
-		// 		expect(status).to.equal(expectedStatus);
-		// 		expect(signature).not.to.be.undefined;
-		// 	} catch (error) {
-		// 		console.log(error instanceof SendTransactionError ? error.logs : error);
-		// 		throw error;
-		// 	}
-		// });
+		it("depositSol()", async () => {
+			try {
+				const {
+					data: { signature: signature, dcaAccount },
+					status,
+				} = await onlineDcaClient.depositSol(
+					wallet.publicKey,
+					new PublicKey("8FRFC6MoGGkMFQwngccyu69VnYbzykGeez7ignHVAFSN"),
+					new BigNumber("0.0001"),
+				);
+				dcaAccounts[1] = dcaAccount;
+				console.log("dcaAccount", dcaAccount.toString());
+				expect(status).to.equal(expectedStatus);
+				expect(signature).not.to.be.undefined;
+			} catch (error) {
+				console.log(error instanceof SendTransactionError ? error.logs : error);
+				throw error;
+			}
+		});
 
 		it("fundSol()", async () => {
 			try {

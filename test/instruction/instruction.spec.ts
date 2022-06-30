@@ -133,7 +133,7 @@ describe("DcaInstruction Test", () => {
 
 	describe("initialize()", () => {
 		it("should have expected value in its props", async () => {
-			const actual = DcaInstruction.initialize(owner, vault, dcaData, startTime, dcaAmount, dcaTime, minimumAmountOut);
+			const actual = DcaInstruction.initialize(owner, vault, dcaData, startTime, dcaAmount, dcaTime);
 
 			const keys: AccountMeta[] = [
 				{ pubkey: owner, isSigner: true, isWritable: true },
@@ -141,7 +141,7 @@ describe("DcaInstruction Test", () => {
 				{ pubkey: dcaData, isSigner: false, isWritable: true },
 			];
 
-			const data = new InitializeData(startTime, dcaAmount, dcaTime, minimumAmountOut).encode();
+			const data = new InitializeData(startTime, dcaAmount, dcaTime).encode();
 
 			expect(actual.keys).deep.equal(keys);
 			expect(actual.data).deep.equal(data);

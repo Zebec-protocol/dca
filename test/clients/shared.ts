@@ -1,7 +1,7 @@
 import base58 from "bs58";
 import * as dotenv from "dotenv";
 
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { clusterApiUrl, Connection, Keypair, PublicKey } from "@solana/web3.js";
 
 dotenv.config();
 
@@ -10,6 +10,8 @@ if (!secretKeyString)
 	throw new Error("Could not load env var. Try adding .env file at root dir with var SECRET=<secret key>");
 
 export const ownerKeypair = Keypair.fromSecretKey(base58.decode(secretKeyString));
+
+export const connection = new Connection(clusterApiUrl("mainnet-beta"));
 
 // RAY
 export const RAY_MINT = new PublicKey("4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R");

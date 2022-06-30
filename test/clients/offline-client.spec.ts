@@ -1,13 +1,21 @@
 import BigNumber from "bignumber.js";
 import { expect } from "chai";
-import { describe, it } from "mocha";
+import { describe } from "mocha";
 
 import { PublicKey, SendTransactionError } from "@solana/web3.js";
 
 import { DcaClientFactory } from "../../src/clients";
-import { CONNECTION as connection } from "../../src/constants";
 import { DcaFlag } from "../../src/models";
-import { dcaAccountB, dcaAccountE, expectedStatus, nowInSec, ownerKeypair, RAY_MINT, USDC_MINT } from "./shared";
+import {
+	connection,
+	dcaAccountB,
+	dcaAccountE,
+	expectedStatus,
+	nowInSec,
+	ownerKeypair,
+	RAY_MINT,
+	USDC_MINT,
+} from "./shared";
 
 const offlineDcaClient = new DcaClientFactory()
 	.setConnection(connection)
@@ -19,22 +27,21 @@ const dcaAccounts: PublicKey[] = [];
 
 describe("Dca offline client", async () => {
 	describe("Test from token to sol process", () => {
-		// it("depositToken()", async () => {
-		// 	try {
-		// 		const {
-		// 			data: { dcaAccount, signature },
-		// 			status,
-		// 		} = await offlineDcaClient.depositToken(ownerKeypair.publicKey, RAY_MINT, new BigNumber("0.0001"));
-		// 		dcaAccounts[0] = dcaAccount;
-		// 		console.log("dca account", dcaAccount.toString());
-		// 		expect(status).to.equal(expectedStatus);
-		// 		expect(signature).not.to.be.undefined;
-		// 	} catch (error) {
-		// 		console.log(error instanceof SendTransactionError ? error.logs : error);
-		// 		throw error;
-		// 	}
-		// });
-
+		it("depositToken()", async () => {
+			try {
+				const {
+					data: { dcaAccount, signature },
+					status,
+				} = await offlineDcaClient.depositToken(ownerKeypair.publicKey, RAY_MINT, new BigNumber("0.0001"));
+				dcaAccounts[0] = dcaAccount;
+				console.log("dca account", dcaAccount.toString());
+				expect(status).to.equal(expectedStatus);
+				expect(signature).not.to.be.undefined;
+			} catch (error) {
+				console.log(error instanceof SendTransactionError ? error.logs : error);
+				throw error;
+			}
+		});
 		it("fundToken()", async () => {
 			try {
 				const {
@@ -48,7 +55,6 @@ describe("Dca offline client", async () => {
 				throw error;
 			}
 		});
-
 		it("initialize()", async () => {
 			try {
 				const {
@@ -70,7 +76,6 @@ describe("Dca offline client", async () => {
 				throw error;
 			}
 		});
-
 		it("swapToSol()", async () => {
 			try {
 				const {
@@ -84,7 +89,6 @@ describe("Dca offline client", async () => {
 				throw error;
 			}
 		});
-
 		it("withdrawSol()", async () => {
 			try {
 				const {
@@ -106,22 +110,21 @@ describe("Dca offline client", async () => {
 	});
 
 	describe("Test from sol to token process", () => {
-		// it("depositSol()", async () => {
-		// 	try {
-		// 		const {
-		// 			data: { signature, dcaAccount },
-		// 			status,
-		// 		} = await offlineDcaClient.depositSol(ownerKeypair.publicKey, USDC_MINT, new BigNumber("0.0000001"));
-		// 		dcaAccounts[1] = dcaAccount;
-		// 		console.log("dca account", dcaAccount.toString());
-		// 		expect(status).to.equal(expectedStatus);
-		// 		expect(signature).not.to.be.undefined;
-		// 	} catch (error) {
-		// 		console.log(error instanceof SendTransactionError ? error.logs : error);
-		// 		throw error;
-		// 	}
-		// });
-
+		it("depositSol()", async () => {
+			try {
+				const {
+					data: { signature, dcaAccount },
+					status,
+				} = await offlineDcaClient.depositSol(ownerKeypair.publicKey, USDC_MINT, new BigNumber("0.0000001"));
+				dcaAccounts[1] = dcaAccount;
+				console.log("dca account", dcaAccount.toString());
+				expect(status).to.equal(expectedStatus);
+				expect(signature).not.to.be.undefined;
+			} catch (error) {
+				console.log(error instanceof SendTransactionError ? error.logs : error);
+				throw error;
+			}
+		});
 		it("fundSol()", async () => {
 			try {
 				const {
@@ -135,7 +138,6 @@ describe("Dca offline client", async () => {
 				throw error;
 			}
 		});
-
 		it("initialize()", async () => {
 			try {
 				const {
@@ -157,7 +159,6 @@ describe("Dca offline client", async () => {
 				throw error;
 			}
 		});
-
 		it("swapFromSol()", async () => {
 			try {
 				const {
@@ -171,7 +172,6 @@ describe("Dca offline client", async () => {
 				throw error;
 			}
 		});
-
 		it("withdrawToken()", async () => {
 			try {
 				const {
