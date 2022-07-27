@@ -160,7 +160,6 @@ export class DcaInstruction {
 		tokenMint: PublicKey,
 		sourceTokenAccount: PublicKey,
 		vaultTokenAccount: PublicKey,
-		dcaAccount: PublicKey,
 		transferAmount: BN,
 	) {
 		const data = new WithdrawTokenData(transferAmount).encode();

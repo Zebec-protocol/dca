@@ -1,10 +1,22 @@
-import BigNumber from "bignumber.js";
+import BN from "bn.js";
 
 import { WalletNotConnectedError } from "@solana/wallet-adapter-base";
-import { Commitment, Connection, PublicKey, Signer, Transaction } from "@solana/web3.js";
+import {
+	Commitment,
+	Connection,
+	PublicKey,
+	Signer,
+	Transaction,
+} from "@solana/web3.js";
 
-import { DcaFlag } from "../models";
-import { DcaClient, IWalletAdapter } from "./base";
+import {
+	Amount,
+	MintAmount,
+} from "../models";
+import {
+	DcaClient,
+	IWalletAdapter,
+} from "./base";
 
 export class DcaOnlineClient extends DcaClient {
 	private _wallet: IWalletAdapter;
@@ -30,6 +42,7 @@ export class DcaOnlineClient extends DcaClient {
 			const blockhash = await this._connection.getLatestBlockhash();
 			txn.recentBlockhash = blockhash.blockhash;
 			txn.lastValidBlockHeight = blockhash.lastValidBlockHeight;
+			txn.feePayer = this._wallet.publicKey;
 			if (signers) {
 				txn.partialSign(...signers);
 			}
@@ -55,38 +68,16 @@ export class DcaOnlineClient extends DcaClient {
 	/**
 	 * Deposit non-native token in dca program vault
 	 */
-	async depositToken(owner: PublicKey, mint: PublicKey, amount: BigNumber) {
+	async depositToken(owner: PublicKey, mint: PublicKey, amount: Amount | MintAmount) {
 		try {
-			const { transaction, dcaAccount } = await this.makeDepositTokenTransaction(owner, mint, amount);
+			const { transaction } = await this.makeDepositTokenTransaction(owner, mint, amount);
 
-			const signature = await this.signAndSendTransaction(transaction, [dcaAccount]);
+			const signature = await this.signAndSendTransaction(transaction);
 
 			return {
 				status: "success",
 				data: {
 					signature: signature,
-					dcaAccount: dcaAccount.publicKey,
-				},
-			};
-		} catch (e) {
-			throw e;
-		}
-	}
-
-	/**
-	 * Deposit sol in dca vault
-	 */
-	async depositSol(owner: PublicKey, mint: PublicKey, amount: BigNumber) {
-		try {
-			const { transaction, dcaAccount } = await this.makeDepositSolTransaction(owner, mint, amount);
-
-			const signature = await this.signAndSendTransaction(transaction, [dcaAccount]);
-
-			return {
-				status: "success",
-				data: {
-					signature: signature,
-					dcaAccount: dcaAccount.publicKey,
 				},
 			};
 		} catch (e) {
@@ -99,30 +90,29 @@ export class DcaOnlineClient extends DcaClient {
 	 */
 	async initialize(
 		owner: PublicKey,
-		mint: PublicKey,
-		dcaAccount: PublicKey,
-		flag: DcaFlag,
-		startTime: BigNumber,
-		dcaAmount: BigNumber,
-		dcaTime: BigNumber,
+		tokenMintFrom: PublicKey,
+		tokenMintTo: PublicKey,
+		startTime: BN,
+		dcaAmount: Amount | MintAmount,
+		frequency: BN,
 	) {
 		try {
-			const transaction = await this.makeInitializeTransaction(
+			const { transaction, dcaAccount } = await this.makeInitializeTransaction(
 				owner,
-				mint,
-				dcaAccount,
-				flag,
+				tokenMintFrom,
+				tokenMintTo,
 				startTime,
 				dcaAmount,
-				dcaTime,
+				frequency,
 			);
 
-			const signature = await this.signAndSendTransaction(transaction);
+			const signature = await this.signAndSendTransaction(transaction, [dcaAccount]);
 
 			return {
 				status: "success",
 				data: {
 					signature: signature,
+					dcaAccount: dcaAccount.publicKey,
 				},
 			};
 		} catch (e) {
@@ -133,29 +123,9 @@ export class DcaOnlineClient extends DcaClient {
 	/**
 	 * Withdraw non-native token from vault
 	 */
-	async withdrawToken(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, amount: BigNumber) {
+	async withdrawToken(owner: PublicKey, mint: PublicKey, amount: Amount | MintAmount) {
 		try {
-			const transaction = await this.makeWithdrawTokenTransaction(owner, mint, dcaAccount, amount);
-
-			const signature = await this.signAndSendTransaction(transaction);
-
-			return {
-				status: "success",
-				data: {
-					signature: signature,
-				},
-			};
-		} catch (e) {
-			throw e;
-		}
-	}
-
-	/**
-	 * Withdraw native token from vault
-	 */
-	async withdrawSol(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, amount: BigNumber) {
-		try {
-			const transaction = await this.makeWithdrawSolTransaction(owner, mint, dcaAccount, amount);
+			const { transaction } = await this.makeWithdrawTokenTransaction(owner, mint, amount);
 
 			const signature = await this.signAndSendTransaction(transaction);
 
@@ -173,65 +143,9 @@ export class DcaOnlineClient extends DcaClient {
 	/**
 	 * Swap token from sol
 	 */
-	async swapFromSol(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey) {
+	async swap(owner: PublicKey, tokenMintFrom: PublicKey, tokenMintTo: PublicKey, dcaAccount: PublicKey) {
 		try {
-			const transaction = await this.makeSwapFromSolTransaction(owner, mint, dcaAccount);
-
-			const signature = await this.signAndSendTransaction(transaction);
-
-			return {
-				status: "success",
-				data: {
-					signature: signature,
-				},
-			};
-		} catch (e) {
-			throw e;
-		}
-	}
-
-	/**
-	 * Swap Token to Sol
-	 */
-	async swapToSol(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey) {
-		const transaction = await this.makeSwapToSolTransaction(owner, mint, dcaAccount);
-
-		const signature = await this.signAndSendTransaction(transaction);
-
-		return {
-			status: "success",
-			data: {
-				signature: signature,
-			},
-		};
-	}
-
-	/**
-	 * Fund non-native token to existing vault
-	 */
-	async fundToken(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, amount: BigNumber) {
-		try {
-			const transaction = await this.makeFundTokenTransaction(owner, mint, dcaAccount, amount);
-
-			const signature = await this.signAndSendTransaction(transaction);
-
-			return {
-				status: "success",
-				data: {
-					signature: signature,
-				},
-			};
-		} catch (e) {
-			throw e;
-		}
-	}
-
-	/**
-	 * Fund native token to existing vault
-	 */
-	async fundSol(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, amount: BigNumber) {
-		try {
-			const transaction = await this.makeFundSolTransaction(owner, mint, dcaAccount, amount);
+			const { transaction } = await this.makeSwapTransaction(owner, tokenMintFrom, tokenMintTo, dcaAccount);
 
 			const signature = await this.signAndSendTransaction(transaction);
 
