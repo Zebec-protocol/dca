@@ -8,11 +8,7 @@ import {
 } from "@solana/web3.js";
 
 import { DCA_PROGRAM_ID } from "../constants";
-
-export enum DcaFlag {
-	"SOL-MINT" = 1,
-	"MINT-SOL" = 2,
-}
+import { Amount } from "./amount";
 
 /**
  * The class for the dca account state in DCA program
@@ -22,7 +18,7 @@ export class DcaAccount {
 	private _mintAddressFrom: PublicKey;
 	private _mintAddressTo: PublicKey;
 	private _startTime: BN;
-	private _dcaAmount: BN;
+	private _dcaAmount: Amount;
 	private _frequency: BN;
 	private _state: boolean;
 
@@ -39,7 +35,7 @@ export class DcaAccount {
 		this._mintAddressFrom = new PublicKey(param.mintAddressFrom);
 		this._mintAddressTo = new PublicKey(param.mintAddressTo);
 		this._startTime = param.startTime;
-		this._dcaAmount = param.dcaAmount;
+		this._dcaAmount = new Amount(param.dcaAmount);
 		this._frequency = param.frequency;
 		this._state = param.state === 1;
 	}
@@ -75,7 +71,7 @@ export class DcaAccount {
 	/**
 	 * The amount of currency or token to be used for the swap from the total amount at a time.
 	 */
-	public get dcaAmount(): BN {
+	public get dcaAmount(): Amount {
 		return this._dcaAmount;
 	}
 
