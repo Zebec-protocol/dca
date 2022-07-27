@@ -13,6 +13,11 @@ export const ownerKeypair = Keypair.fromSecretKey(base58.decode(secretKeyString)
 
 export const connection = new Connection(clusterApiUrl("mainnet-beta"));
 
+export const DEVNET_BASEMINT = new PublicKey("BEcGFQK1T1tSu3kvHC17cyCkQ5dvXqAJ7ExB2bb5Do7a");
+export const DEVNET_QUOTEMINT = new PublicKey("FSRvxBNrQWX2Fy2qvKMLL3ryEdRtE3PUTZBcdKwASZTU");
+export const WSOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
+export const DEVNET_QUOTEMINT1 = new PublicKey("8FRFC6MoGGkMFQwngccyu69VnYbzykGeez7ignHVAFSN");
+
 // RAY
 export const RAY_MINT = new PublicKey("4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R");
 export const dcaAccountA = new PublicKey("Hefrv6CqZr6EGq2Axkn89gbfxSnntkLeupgSBNhDdZn6");
