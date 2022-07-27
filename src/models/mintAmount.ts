@@ -1,9 +1,9 @@
 import BN from "bn.js";
 
+import { Amount } from "./amount";
 import { Mint } from "./mint";
-import { Supply } from "./supply";
 
-export class MintSupply extends Supply {
+export class MintAmount extends Amount {
 	private _mint: Mint;
 
 	constructor(mint: Mint, amount: BN) {

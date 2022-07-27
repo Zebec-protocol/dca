@@ -1,4 +1,4 @@
 export * from "./dca-account";
-export * from "./supply";
+export * from "./amount";
 export * from "./mint";
-export * from "./mintSupply";
+export * from "./mintAmount";

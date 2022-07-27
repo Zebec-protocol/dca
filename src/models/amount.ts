@@ -7,7 +7,7 @@ export function parseBigNumber(amount: number, decimals: number) {
 	return new BigNumber(amount).multipliedBy(new BigNumber(decimals));
 }
 
-export class Supply extends BN {
+export class Amount extends BN {
 	protected _amount: BN;
 
 	constructor(amount: BN) {
