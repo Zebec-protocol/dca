@@ -1,9 +1,9 @@
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
 
-const isU64 = (amount: BigNumber) => {
-	if (amount.isLessThan(new BigNumber(0)) || amount.isGreaterThanOrEqualTo(new BigNumber("18446744073709551615"))) {
-		throw new RangeError("The amount doesn't fit in unsigned 64-bit integer.");
+const isU64 = (amount: BN) => {
+	if (amount.gt(new BN("18446744073709551615"))) {
+		throw new RangeError("The amount is not an unsigned 64-bit integer.");
 	}
 };
 
@@ -11,10 +11,11 @@ const isU64 = (amount: BigNumber) => {
  * Convert sol or token amounts to lamports
  * @returns Amount in lamports
  */
-export function convertToLamports(amount: BigNumber, decimal = 9) {
-	const _amount = amount.multipliedBy(new BigNumber(10 ** decimal));
-	isU64(_amount);
-	return new BN(_amount.toFixed());
+export function convertToLamports(amount: number, decimals = 9) {
+	const _amount = new BigNumber(amount).multipliedBy(10 * decimals);
+	const bnAmount = new BN(_amount.toFixed());
+	isU64(bnAmount);
+	return bnAmount;
 }
 
 /**
@@ -22,7 +23,6 @@ export function convertToLamports(amount: BigNumber, decimal = 9) {
  * @returns Amount in lamports
  */
 export function convertToDecimal(amount: BN, decimal = 9) {
-	const _amount = new BigNumber(amount.toString());
-	isU64(_amount);
-	return _amount.dividedBy(new BigNumber(10 ** decimal));
+	isU64(amount);
+	return amount.divn(10 ** decimal).toNumber();
 }
