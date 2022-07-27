@@ -1,6 +1,6 @@
-import BigNumber from "bignumber.js";
+import BN from "bn.js";
 import { Commitment, Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
-import { DcaFlag } from "../models/dca-account";
+import { Amount, MintAmount } from "../models";
 export interface IWalletAdapter {
     publicKey: PublicKey;
     signTransaction(transaction: Transaction): Promise<Transaction>;
@@ -15,19 +15,17 @@ export declare abstract class DcaClient {
         commitment: Commitment;
         preflightCommitment: Commitment;
     });
-    protected makeDepositTokenTransaction(owner: PublicKey, mint: PublicKey, amount: BigNumber): Promise<{
+    protected makeDepositTokenTransaction(source: PublicKey, tokenMint: PublicKey, amount: Amount | MintAmount): Promise<{
+        transaction: Transaction;
+    }>;
+    protected makeInitializeTransaction(source: PublicKey, tokenMintFrom: PublicKey, tokenMintTo: PublicKey, startTime: BN, dcaAmount: Amount | MintAmount, frequency: BN): Promise<{
         transaction: Transaction;
         dcaAccount: Keypair;
     }>;
-    protected makeDepositSolTransaction(owner: PublicKey, mint: PublicKey, amount: BigNumber): Promise<{
+    protected makeWithdrawTokenTransaction(source: PublicKey, tokenMint: PublicKey, amount: Amount | MintAmount): Promise<{
         transaction: Transaction;
-        dcaAccount: Keypair;
     }>;
-    protected makeInitializeTransaction(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, flag: DcaFlag, startTime: BigNumber, dcaAmount: BigNumber, dcaTime: BigNumber): Promise<Transaction>;
-    protected makeWithdrawTokenTransaction(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, amount: BigNumber): Promise<Transaction>;
-    protected makeWithdrawSolTransaction(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, amount: BigNumber): Promise<Transaction>;
-    protected makeSwapFromSolTransaction(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey): Promise<Transaction>;
-    protected makeSwapToSolTransaction(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey): Promise<Transaction>;
-    protected makeFundTokenTransaction(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, amount: BigNumber): Promise<Transaction>;
-    protected makeFundSolTransaction(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, amount: BigNumber): Promise<Transaction>;
+    protected makeSwapTransaction(source: PublicKey, tokenMintFrom: PublicKey, tokenMintTo: PublicKey, dcaAccount: PublicKey): Promise<{
+        transaction: Transaction;
+    }>;
 }

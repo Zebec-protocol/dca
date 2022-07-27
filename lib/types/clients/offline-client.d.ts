@@ -1,5 +1,6 @@
-import BigNumber from "bignumber.js";
+import BN from "bn.js";
 import { Commitment, Connection, PublicKey, Signer } from "@solana/web3.js";
+import { Amount, MintAmount } from "../models";
 import { DcaClient } from "./base";
 export declare class DcaOfflineClient extends DcaClient {
     private _payer;
@@ -13,45 +14,26 @@ export declare class DcaOfflineClient extends DcaClient {
     /**
      * Deposit non-native token in dca program vault
      */
-    depositToken(owner: PublicKey, mint: PublicKey, amount: BigNumber): Promise<{
+    depositToken(owner: PublicKey, mint: PublicKey, amount: Amount | MintAmount): Promise<{
         status: string;
         data: {
             signature: string;
-            dcaAccount: PublicKey;
-        };
-    }>;
-    /**
-     * Deposit sol in dca vault
-     */
-    depositSol(owner: PublicKey, mint: PublicKey, amount: BigNumber): Promise<{
-        status: string;
-        data: {
-            signature: string;
-            dcaAccount: PublicKey;
         };
     }>;
     /**
      * Intialize dca process
      */
-    initialize(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, startTime: BigNumber, dcaAmount: BigNumber, dcaTime: BigNumber): Promise<{
+    initialize(owner: PublicKey, tokenMintFrom: PublicKey, tokenMintTo: PublicKey, startTime: BN, dcaAmount: Amount | MintAmount, frequency: BN): Promise<{
         status: string;
         data: {
             signature: string;
+            dcaAccount: PublicKey;
         };
     }>;
     /**
      * Withdraw non-native token from vault
      */
-    withdrawToken(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, amount: BigNumber): Promise<{
-        status: string;
-        data: {
-            signature: string;
-        };
-    }>;
-    /**
-     * Withdraw native token from vault
-     */
-    withdrawSol(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, amount: BigNumber): Promise<{
+    withdrawToken(owner: PublicKey, mint: PublicKey, amount: Amount | MintAmount): Promise<{
         status: string;
         data: {
             signature: string;
@@ -60,34 +42,7 @@ export declare class DcaOfflineClient extends DcaClient {
     /**
      * Swap token from sol
      */
-    swapFromSol(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey): Promise<{
-        status: string;
-        data: {
-            signature: string;
-        };
-    }>;
-    /**
-     * Swap Token to Sol
-     */
-    swapToSol(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey): Promise<{
-        status: string;
-        data: {
-            signature: string;
-        };
-    }>;
-    /**
-     * Fund non-native token to existing vault
-     */
-    fundToken(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, amount: BigNumber): Promise<{
-        status: string;
-        data: {
-            signature: string;
-        };
-    }>;
-    /**
-     * Fund native token to existing vault
-     */
-    fundSol(owner: PublicKey, mint: PublicKey, dcaAccount: PublicKey, amount: BigNumber): Promise<{
+    swap(owner: PublicKey, tokenMintFrom: PublicKey, tokenMintTo: PublicKey, dcaAccount: PublicKey): Promise<{
         status: string;
         data: {
             signature: string;

@@ -5,39 +5,19 @@ import { PublicKey, TransactionInstruction } from "@solana/web3.js";
  */
 export declare class DcaInstruction {
     /**
-     * Generate transaction instruction that deposit token to DCA vault
+     * Generate transaction instruction that deposit into DCA vault
      */
-    static depositToken(source: PublicKey, vault: PublicKey, mint: PublicKey, nativeMint: PublicKey, sourceTokenAccount: PublicKey, vaultTokenAccount: PublicKey, vaultNativeMintAccount: PublicKey, dcaAccount: PublicKey, amount: BN): TransactionInstruction;
+    static depositToken(source: PublicKey, vault: PublicKey, tokenMint: PublicKey, sourceTokenAccount: PublicKey, vaultTokenAccount: PublicKey, amount: BN): TransactionInstruction;
     /**
-     * Generate transaction instruction that deposit native token to DCA vault
+     * Generate transaction instruction to intialize the dca process
      */
-    static depositSol(source: PublicKey, vault: PublicKey, mint: PublicKey, nativeMint: PublicKey, sourceTokenAccount: PublicKey, vaultNativeMintAccount: PublicKey, vaultTokenAccount: PublicKey, dcaAccount: PublicKey, amount: BN): TransactionInstruction;
+    static initialize(source: PublicKey, vault: PublicKey, tokenMintFrom: PublicKey, tokenMintTo: PublicKey, vaultTokenAccountFrom: PublicKey, vaultTokenAccountTo: PublicKey, dcaAccount: PublicKey, startTime: BN, dcaAmount: BN, frequency: BN): TransactionInstruction;
     /**
-     * Generate transaction instruction that intialize the swap process
+     * Generate transaction instruction to swap
      */
-    static initialize(source: PublicKey, vault: PublicKey, dcaAccount: PublicKey, startTime: BN, dcaAmount: BN, dcaTime: BN, minimumAmountOut: BN): TransactionInstruction;
+    static swap(liquidityProgramId: PublicKey, ammAccount: PublicKey, ammAuthority: PublicKey, ammOpenOrder: PublicKey, ammTargetOrder: PublicKey, poolCoinTokenAccount: PublicKey, poolPcTokenAccount: PublicKey, serumMarketProgramId: PublicKey, serumMarket: PublicKey, serumBids: PublicKey, serumAsk: PublicKey, serumEventQueue: PublicKey, serumCoinVault: PublicKey, serumPcVault: PublicKey, serumVaultSigner: PublicKey, vault: PublicKey, vaultTokenAccountFrom: PublicKey, vaultTokenAccountTo: PublicKey, tokenMintFrom: PublicKey, tokenMintTo: PublicKey, source: PublicKey, dcaAccount: PublicKey, minimumAmountOut: BN): TransactionInstruction;
     /**
-     * Generate transaction instruction that swap token to sol
+     * Generate Transaction Instruction to withdraw token from DCA vault
      */
-    static swapToSol(liquidityProgramId: PublicKey, amm: PublicKey, ammAuthority: PublicKey, ammOpenOrder: PublicKey, ammTargetOrder: PublicKey, poolCoinToken: PublicKey, poolPcToken: PublicKey, serumMarketProgramId: PublicKey, serumMarket: PublicKey, serumBids: PublicKey, serumAsk: PublicKey, serumEventQueue: PublicKey, serumCoinVault: PublicKey, serumPcVault: PublicKey, serumVaultSigner: PublicKey, vault: PublicKey, vaultNativeMintAccount: PublicKey, vaultTokenAccount: PublicKey, mint: PublicKey, source: PublicKey, dcaAccount: PublicKey, nativeMint: PublicKey, minimumAmountOut: BN): TransactionInstruction;
-    /**
-     * Generate transaction instruction that swap token from sol
-     */
-    static swapFromSol(liquidityProgramId: PublicKey, amm: PublicKey, ammAuthority: PublicKey, ammOpenOrder: PublicKey, ammTargetOrder: PublicKey, poolCoinToken: PublicKey, poolPcToken: PublicKey, serumMarketProgramId: PublicKey, serumMarket: PublicKey, serumBids: PublicKey, serumAsk: PublicKey, serumEventQueue: PublicKey, serumCoinVault: PublicKey, serumPcVault: PublicKey, serumVaultSigner: PublicKey, vault: PublicKey, vaultNativeMintAccount: PublicKey, vaultTokenAccount: PublicKey, mint: PublicKey, source: PublicKey, dcaAccount: PublicKey, nativeMint: PublicKey, minimumAmountOut: BN): TransactionInstruction;
-    /**
-     * Generate Transaction Instruction that withdraws non-native token from DCA vault
-     */
-    static withdrawToken(source: PublicKey, vault: PublicKey, mint: PublicKey, sourceTokenAccount: PublicKey, vaultTokenAccount: PublicKey, dcaAccount: PublicKey, transferAmount: BN): TransactionInstruction;
-    /**
-     * Generate Transaction Instruction that withdraws native token from DCA vault
-     */
-    static withdrawSol(source: PublicKey, vault: PublicKey, mint: PublicKey, sourceTokenAccount: PublicKey, vaultTokenAccount: PublicKey, dcaAccount: PublicKey, nativeMint: PublicKey, vaultNativeMintAccount: PublicKey, sourceNativeMintAccount: PublicKey, transferAmount: BN): TransactionInstruction;
-    /**
-     * Generate transaction instruction that fund token in initialized dca
-     */
-    static fundToken(source: PublicKey, vault: PublicKey, mint: PublicKey, sourceTokenAccount: PublicKey, vaultTokenAccount: PublicKey, dcaAccount: PublicKey, transferAmount: BN): TransactionInstruction;
-    /**
-     * Generate transaction instruction that sol to intialized dca process
-     */
-    static fundSol(source: PublicKey, vault: PublicKey, mint: PublicKey, nativeMint: PublicKey, sourceTokenAccount: PublicKey, vaultNativeMintAccount: PublicKey, vaultTokenAccount: PublicKey, dcaAccount: PublicKey, transferAmount: BN): TransactionInstruction;
+    static withdrawToken(source: PublicKey, vault: PublicKey, tokenMint: PublicKey, sourceTokenAccount: PublicKey, vaultTokenAccount: PublicKey, transferAmount: BN): TransactionInstruction;
 }

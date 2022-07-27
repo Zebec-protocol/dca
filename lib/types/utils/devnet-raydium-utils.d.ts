@@ -1,6 +1,6 @@
 import { GetMultipleAccountsInfoConfig } from "@raydium-io/raydium-sdk";
 import { Connection, PublicKey } from "@solana/web3.js";
-export declare function fetchAllPoolKeysDevnet(connection: Connection, config: GetMultipleAccountsInfoConfig): Promise<{
+export declare function fetchAllPoolKeysDevnet(connection: Connection, config?: GetMultipleAccountsInfoConfig): Promise<{
     marketBaseVault: PublicKey;
     marketQuoteVault: PublicKey;
     marketBids: PublicKey;
@@ -48,3 +48,4 @@ export declare function fetchPoolKeysDevnet(connection: Connection, poolId: Publ
     marketId: PublicKey;
     marketAuthority: PublicKey;
 }>;
+export declare function findPoolIdByBaseAndQuoteMintDevnet(base: PublicKey, quote: PublicKey): Promise<string>;
