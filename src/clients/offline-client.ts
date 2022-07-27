@@ -1,17 +1,8 @@
 import BN from "bn.js";
 
-import {
-	Commitment,
-	Connection,
-	PublicKey,
-	Signer,
-	Transaction,
-} from "@solana/web3.js";
+import { Commitment, Connection, PublicKey, Signer, Transaction } from "@solana/web3.js";
 
-import {
-	Amount,
-	MintAmount,
-} from "../models";
+import { Amount, MintAmount } from "../models";
 import { DcaClient } from "./base";
 
 export class DcaOfflineClient extends DcaClient {
@@ -37,8 +28,8 @@ export class DcaOfflineClient extends DcaClient {
 			txn.recentBlockhash = blockhash.blockhash;
 			txn.lastValidBlockHeight = blockhash.lastValidBlockHeight;
 			txn.feePayer = this._payer.publicKey;
-			txn.sign(...signers);
-			const signature = await this._connection.sendRawTransaction(txn.serialize(), {
+
+			const signature = await this._connection.sendTransaction(txn, signers, {
 				preflightCommitment: this._commitment,
 				skipPreflight: false,
 			});

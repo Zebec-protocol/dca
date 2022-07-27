@@ -1,22 +1,10 @@
 import BN from "bn.js";
 
 import { WalletNotConnectedError } from "@solana/wallet-adapter-base";
-import {
-	Commitment,
-	Connection,
-	PublicKey,
-	Signer,
-	Transaction,
-} from "@solana/web3.js";
+import { Commitment, Connection, PublicKey, Signer, Transaction } from "@solana/web3.js";
 
-import {
-	Amount,
-	MintAmount,
-} from "../models";
-import {
-	DcaClient,
-	IWalletAdapter,
-} from "./base";
+import { Amount, MintAmount } from "../models";
+import { DcaClient, IWalletAdapter } from "./base";
 
 export class DcaOnlineClient extends DcaClient {
 	private _wallet: IWalletAdapter;

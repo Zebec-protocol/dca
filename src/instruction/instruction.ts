@@ -1,24 +1,11 @@
 import BN from "bn.js";
 
-import {
-	ASSOCIATED_TOKEN_PROGRAM_ID,
-	TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
-import {
-	PublicKey,
-	SystemProgram,
-	SYSVAR_RENT_PUBKEY,
-	TransactionInstruction,
-} from "@solana/web3.js";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction } from "@solana/web3.js";
 
 import { DCA_PROGRAM_ID } from "../constants";
 import { AccountMetaFactory } from "../utils";
-import {
-	DepositTokenData,
-	InitializeData,
-	SwapData,
-	WithdrawTokenData,
-} from "./data";
+import { DepositTokenData, InitializeData, SwapData, WithdrawTokenData } from "./data";
 
 /**
  * The DCA program instruction factory class.
@@ -77,7 +64,7 @@ export class DcaInstruction {
 			AccountMetaFactory.newWritable(tokenMintTo, false),
 			AccountMetaFactory.newWritable(vaultTokenAccountFrom, false),
 			AccountMetaFactory.newWritable(vaultTokenAccountTo, false),
-			AccountMetaFactory.newWritable(dcaAccount, false),
+			AccountMetaFactory.newWritable(dcaAccount, true),
 			AccountMetaFactory.newReadonly(SystemProgram.programId, false),
 			AccountMetaFactory.newReadonly(SYSVAR_RENT_PUBKEY, false),
 			AccountMetaFactory.newReadonly(TOKEN_PROGRAM_ID, false),

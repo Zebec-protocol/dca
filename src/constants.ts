@@ -1,9 +1,4 @@
-import {
-	Cluster,
-	clusterApiUrl,
-	Connection,
-	PublicKey,
-} from "@solana/web3.js";
+import { Cluster, clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
 
 /** The dca program id. */
 export const DCA_PROGRAM_ID = new PublicKey("89U3HCacYnqJYUX33EupQRyKLBAqA9vb6tzAATRp19c7");

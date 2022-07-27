@@ -1,27 +1,11 @@
 import BN from "bn.js";
 
-import {
-	Liquidity,
-	LiquidityPoolKeysV4,
-	Percent,
-	Token,
-	TokenAmount,
-} from "@raydium-io/raydium-sdk";
-import {
-	Commitment,
-	Connection,
-	Keypair,
-	PublicKey,
-	Transaction,
-} from "@solana/web3.js";
+import { Liquidity, LiquidityPoolKeysV4, Percent, Token, TokenAmount } from "@raydium-io/raydium-sdk";
+import { Commitment, Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
 
 import { CONNECTION } from "../constants";
 import { DcaInstruction } from "../instruction";
-import {
-	Amount,
-	DcaAccount,
-	MintAmount,
-} from "../models";
+import { Amount, DcaAccount, MintAmount } from "../models";
 import {
 	fetchPoolKeys,
 	fetchPoolKeysDevnet,

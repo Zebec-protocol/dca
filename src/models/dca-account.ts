@@ -1,11 +1,7 @@
 import BN from "bn.js";
 import { deserializeUnchecked } from "borsh";
 
-import {
-	Commitment,
-	Connection,
-	PublicKey,
-} from "@solana/web3.js";
+import { Commitment, Connection, PublicKey } from "@solana/web3.js";
 
 import { DCA_PROGRAM_ID } from "../constants";
 import { Amount } from "./amount";
