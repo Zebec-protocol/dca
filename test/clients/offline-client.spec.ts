@@ -54,7 +54,6 @@ describe("Dca offline client", async () => {
 					new Amount(new BN("1000")),
 					new BN(3),
 				);
-				console.log(dcaAccount.toString());
 				dcaAccounts[0] = dcaAccount;
 				expect(status1).to.equal(expectedStatus);
 				expect(signature1).not.to.be.undefined;
@@ -90,7 +89,6 @@ describe("Dca offline client", async () => {
 				const {
 					value: { amount },
 				} = await CONNECTION["devnet"].getTokenAccountBalance(tokenAccount, "confirmed");
-				console.log("withdrawable token balance: ", amount);
 				const {
 					data: { signature: signature3 },
 					status: status3,
@@ -169,7 +167,6 @@ describe("Dca offline client", async () => {
 				const {
 					value: { amount },
 				} = await CONNECTION["devnet"].getTokenAccountBalance(tokenAccount, "confirmed");
-				console.log("withdrawable token balance: ", amount);
 				const {
 					data: { signature: signature3 },
 					status: status3,
