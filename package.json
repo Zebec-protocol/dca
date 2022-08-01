@@ -12,7 +12,7 @@
 		"format": "prettier --write .",
 		"publish": "npm publish --access public",
 		"start": "ts-node ./src",
-		"test": "mocha --bail --timeout=300000 --check-leaks -r tsconfig-paths/register -r ts-node/register \"./test/**/*.spec.ts\""
+		"test": "mocha --bail --timeout=300000 --check-leaks -r tsconfig-paths/register -r ts-node/register \"./test/**/deposit.spec.ts\""
 	},
 	"repository": {
 		"type": "git",
