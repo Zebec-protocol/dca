@@ -7,6 +7,12 @@ export const delay = async (ms: number): Promise<unknown> => {
 	return delay;
 };
 
+export const getClusterTime = async (connection: Connection) => {
+	const currentSlot = await connection.getSlot();
+	const blockTime = (await connection.getBlockTime(currentSlot)) as number;
+	return blockTime;
+};
+
 export const getBalanceOfSplToken = async (splTokenAddress: PublicKey, wallet: PublicKey, connection: Connection) => {
 	const filters: GetProgramAccountsFilter[] = [
 		{
@@ -21,6 +27,7 @@ export const getBalanceOfSplToken = async (splTokenAddress: PublicKey, wallet: P
 	];
 	const accounts = await connection.getParsedProgramAccounts(TOKEN_PROGRAM_ID, {
 		filters: filters,
+		commitment: "confirmed",
 	});
 	await delay(2000);
 	let tokenBalance = 0;
