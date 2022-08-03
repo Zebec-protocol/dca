@@ -4,7 +4,7 @@ import { describe, it } from "mocha";
 import { LiquidityPoolKeys } from "@raydium-io/raydium-sdk";
 import { PublicKey } from "@solana/web3.js";
 
-import { CONNECTION as connection } from "../../src/constants";
+import { CONNECTION } from "../../src/constants";
 import { fetchPoolKeys, findPoolIdByBaseAndQuoteMint } from "../../src/utils";
 
 describe("Raydium utils test", () => {
@@ -48,7 +48,7 @@ describe("Raydium utils test", () => {
 				marketEventQueue: new PublicKey("224GEWPVsY5fjn3JqqkxC7jW2oasosipvWSZCFrpbiDm"),
 			};
 
-			const actual = await fetchPoolKeys(connection, poolId);
+			const actual = await fetchPoolKeys(CONNECTION["mainnet-beta"], poolId);
 
 			expect(actual).deep.equal(keys);
 		});

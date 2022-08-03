@@ -3,17 +3,7 @@ import { Buffer } from "buffer";
 import { expect } from "chai";
 import { describe, it } from "mocha";
 
-import {
-	DepositSolData,
-	DepositTokenData,
-	FundSolData,
-	FundTokenData,
-	InitializeData,
-	SwapFromSolData,
-	SwapToSolData,
-	WithdrawSolData,
-	WithdrawTokenData,
-} from "../../src/instruction/data";
+import { DepositTokenData, InitializeData, SwapData, WithdrawTokenData } from "../../src/instruction/data";
 
 describe("Instruction data unit test: ", () => {
 	describe("DepositTokenData object when encoded", () => {
@@ -24,18 +14,10 @@ describe("Instruction data unit test: ", () => {
 		});
 	});
 
-	describe("DepositSolData object when encoded", () => {
-		it("gives output as expected", () => {
-			const expectation = Buffer.from([1, 0, 101, 205, 29, 0, 0, 0, 0]);
-			const reality = new DepositSolData(new BN("500000000")).encode();
-			expect(reality).to.deep.equal(expectation);
-		});
-	});
-
 	describe("InitializeData object when encoded", () => {
 		it("gives output as expected", () => {
 			const expectation = Buffer.from([
-				2, 20, 86, 134, 234, 128, 1, 0, 0, 0, 101, 205, 29, 0, 0, 0, 0, 0, 202, 154, 59, 0, 0, 0, 0,
+				1, 20, 86, 134, 234, 128, 1, 0, 0, 0, 101, 205, 29, 0, 0, 0, 0, 0, 202, 154, 59, 0, 0, 0, 0,
 			]);
 			const reality = new InitializeData(new BN("1653202114068"), new BN("500000000"), new BN("1000000000")).encode();
 			expect(reality).to.deep.equal(expectation);
@@ -44,48 +26,16 @@ describe("Instruction data unit test: ", () => {
 
 	describe("SwapToSolData object when encoded", () => {
 		it("gives output as expected", () => {
-			const expectation = Buffer.from([3, 0, 202, 154, 59, 0, 0, 0, 0]);
-			const reality = new SwapToSolData(new BN("1000000000")).encode();
-			expect(reality).to.deep.equal(expectation);
-		});
-	});
-
-	describe("SwapFromSolData object when encoded", () => {
-		it("gives output as expected", () => {
-			const expectation = Buffer.from([4, 0, 202, 154, 59, 0, 0, 0, 0]);
-			const reality = new SwapFromSolData(new BN("1000000000")).encode();
+			const expectation = Buffer.from([2, 0, 202, 154, 59, 0, 0, 0, 0]);
+			const reality = new SwapData(new BN("1000000000")).encode();
 			expect(reality).to.deep.equal(expectation);
 		});
 	});
 
 	describe("WithdrawTokenData object when encoded", () => {
 		it("gives output as expected", () => {
-			const expectation = Buffer.from([5, 0, 101, 205, 29, 0, 0, 0, 0]);
+			const expectation = Buffer.from([3, 0, 101, 205, 29, 0, 0, 0, 0]);
 			const reality = new WithdrawTokenData(new BN("500000000")).encode();
-			expect(reality).to.deep.equal(expectation);
-		});
-	});
-
-	describe("WithdrawSolData object when encoded", () => {
-		it("gives output as expected", () => {
-			const expectation = Buffer.from([6, 0, 101, 205, 29, 0, 0, 0, 0]);
-			const reality = new WithdrawSolData(new BN("500000000")).encode();
-			expect(reality).to.deep.equal(expectation);
-		});
-	});
-
-	describe("FundTokenData object when encoded", () => {
-		it("gives output as expected", () => {
-			const expectation = Buffer.from([7, 0, 101, 205, 29, 0, 0, 0, 0]);
-			const reality = new FundTokenData(new BN("500000000")).encode();
-			expect(reality).to.deep.equal(expectation);
-		});
-	});
-
-	describe("FundSolData object when encoded", () => {
-		it("gives output as expected", () => {
-			const expectation = Buffer.from([8, 0, 101, 205, 29, 0, 0, 0, 0]);
-			const reality = new FundSolData(new BN("500000000")).encode();
 			expect(reality).to.deep.equal(expectation);
 		});
 	});

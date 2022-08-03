@@ -5,12 +5,14 @@ import { Keypair, PublicKey } from "@solana/web3.js";
 
 import { DcaClientFactory, DcaOnlineClient } from "../../src/clients";
 import { DcaOfflineClient } from "../../src/clients/offline-client";
-import { CONNECTION as connection } from "../../src/constants";
+import { CONNECTION } from "../../src/constants";
 
 describe("Dca client factory test", () => {
-	const dcaOfflineClient = new DcaClientFactory().setConnection(connection).buildOfflineClient(Keypair.generate());
+	const dcaOfflineClient = new DcaClientFactory()
+		.setConnection(CONNECTION["devnet"])
+		.buildOfflineClient(Keypair.generate());
 
-	const dcaOnlineClient = new DcaClientFactory().setConnection(connection).buildOnlineClient({
+	const dcaOnlineClient = new DcaClientFactory().setConnection(CONNECTION["devnet"]).buildOnlineClient({
 		publicKey: new PublicKey("DS2tt4BX7YwCw7yrDNwbAdnYrxjeCPeGJbHmZEYC8RTb"),
 		async signTransaction(transaction) {
 			return transaction;

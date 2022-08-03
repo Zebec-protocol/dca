@@ -12,7 +12,7 @@ const isU64 = (amount: BN) => {
  * @returns Amount in lamports
  */
 export function convertToLamports(amount: number, decimals = 9) {
-	const _amount = new BigNumber(amount).multipliedBy(10 * decimals);
+	const _amount = new BigNumber(amount).multipliedBy(10 ** decimals);
 	const bnAmount = new BN(_amount.toFixed());
 	isU64(bnAmount);
 	return bnAmount;
@@ -20,9 +20,11 @@ export function convertToLamports(amount: number, decimals = 9) {
 
 /**
  * Convert lamports to decimal
- * @returns Amount in lamports
+ * @returns Amount in decimal
  */
 export function convertToDecimal(amount: BN, decimal = 9) {
-	isU64(amount);
-	return amount.divn(10 ** decimal).toNumber();
+	const _amount = new BigNumber(Number(amount)).div(10 ** decimal);
+	const bnAmount = new BN(_amount.toFixed());
+	isU64(bnAmount);
+	return bnAmount;
 }
