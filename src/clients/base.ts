@@ -13,6 +13,8 @@ import {
 	findPoolIdByBaseAndQuoteMint,
 	findPoolIdByBaseAndQuoteMintDevnet,
 	findVaultAddress,
+	getClusterTime,
+	nowInSec,
 } from "../utils";
 
 export interface IWalletAdapter {
@@ -63,6 +65,10 @@ export abstract class DcaClient {
 			const vault = await findVaultAddress(source);
 			const vaultTokenAccountFrom = await findAssociatedTokenAddress(vault, tokenMintFrom);
 			const vaultTokenAccountTo = await findAssociatedTokenAddress(vault, tokenMintTo);
+			const clusterTime = await getClusterTime(CONNECTION["devnet"]);
+			const currentTime = new BN(nowInSec());
+			const differenceBetweenWallClock = currentTime.sub(clusterTime);
+			const startTimeWithCluster = startTime.add(differenceBetweenWallClock);
 			let txn = new Transaction().add(
 				DcaInstruction.initialize(
 					source,
@@ -72,7 +78,7 @@ export abstract class DcaClient {
 					vaultTokenAccountFrom,
 					vaultTokenAccountTo,
 					dcaAccount.publicKey,
-					startTime,
+					startTimeWithCluster,
 					dcaAmount,
 					frequency,
 				),
@@ -80,6 +86,13 @@ export abstract class DcaClient {
 
 			return {
 				transaction: txn,
+				request: {
+					startTime: startTimeWithCluster,
+					dcaAmount,
+					frequency,
+					tokenMintFrom,
+					tokenMintTo,
+				},
 				dcaAccount: dcaAccount,
 			};
 		} catch (e) {

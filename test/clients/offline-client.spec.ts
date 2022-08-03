@@ -7,16 +7,16 @@ import { PublicKey, SendTransactionError } from "@solana/web3.js";
 import { DcaClientFactory } from "../../src/clients";
 import { CONNECTION } from "../../src/constants";
 import { Amount, DcaAccount } from "../../src/models";
-import { findAssociatedTokenAddress, findVaultAddress } from "../../src/utils";
+import { findAssociatedTokenAddress, findVaultAddress, getClusterTime, nowInSec } from "../../src/utils";
 import {
 	DEVNET_BASEMINT,
 	DEVNET_QUOTEMINT,
 	DEVNET_QUOTEMINT1,
 	expectedStatus,
-	nowInSec,
 	ownerKeypair,
 	WSOL_MINT,
 } from "./shared";
+import { delay } from "../scenarios/utils";
 
 const offlineDcaClient = new DcaClientFactory()
 	.setConnection(CONNECTION["devnet"])
@@ -64,8 +64,10 @@ describe("Dca offline client", async () => {
 		});
 		it("swap()", async () => {
 			try {
-				console.log(dcaAccounts[0].toString());
 				const dcaAccount = await DcaAccount.getDcaAccountInfo(CONNECTION["devnet"], dcaAccounts[0], "confirmed");
+				const clusterTime = await getClusterTime(CONNECTION["devnet"]);
+				const differenceBetweenWallClock = dcaAccount.startTime.sub(clusterTime);
+				await delay((Number(differenceBetweenWallClock) + 2) * 1000);
 				const {
 					data: { signature: signature2 },
 					status: status2,
@@ -104,7 +106,6 @@ describe("Dca offline client", async () => {
 
 	describe("Test with sol", () => {
 		const dcaAccounts: PublicKey[] = [];
-
 		it("depositToken()", async () => {
 			try {
 				const {
@@ -131,7 +132,6 @@ describe("Dca offline client", async () => {
 					new Amount(new BN("1000")),
 					new BN(3),
 				);
-				console.log(dcaAccount.toString());
 				dcaAccounts[0] = dcaAccount;
 				expect(status1).to.equal(expectedStatus);
 				expect(signature1).not.to.be.undefined;
@@ -142,8 +142,10 @@ describe("Dca offline client", async () => {
 		});
 		it("swap()", async () => {
 			try {
-				console.log(dcaAccounts[0].toString());
 				const dcaAccount = await DcaAccount.getDcaAccountInfo(CONNECTION["devnet"], dcaAccounts[0], "confirmed");
+				const clusterTime = await getClusterTime(CONNECTION["devnet"]);
+				const differenceBetweenWallClock = dcaAccount.startTime.sub(clusterTime);
+				await delay((Number(differenceBetweenWallClock) + 2) * 1000);
 				const {
 					data: { signature: signature2 },
 					status: status2,

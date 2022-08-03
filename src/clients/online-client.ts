@@ -85,7 +85,7 @@ export class DcaOnlineClient extends DcaClient {
 		frequency: BN,
 	) {
 		try {
-			const { transaction, dcaAccount } = await this.makeInitializeTransaction(
+			const { transaction, dcaAccount, request } = await this.makeInitializeTransaction(
 				owner,
 				tokenMintFrom,
 				tokenMintTo,
@@ -101,6 +101,7 @@ export class DcaOnlineClient extends DcaClient {
 				data: {
 					signature: signature,
 					dcaAccount: dcaAccount.publicKey,
+					request,
 				},
 			};
 		} catch (e) {

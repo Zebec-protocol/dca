@@ -12,12 +12,11 @@ import {
 	DEVNET_QUOTEMINT,
 	DEVNET_QUOTEMINT1,
 	expectedStatus,
-	nowInSec,
 	ownerKeypair,
 	WSOL_MINT,
 } from "../clients/shared";
-import { delay, getBalanceOfSplToken, getClusterTime, getNativeTokenBalance } from "./utils";
-import { findVaultAddress } from "../../src/utils";
+import { delay, getBalanceOfSplToken, getEstimatedFee, getNativeTokenBalance } from "./utils";
+import { findVaultAddress, getClusterTime, nowInSec } from "../../src/utils";
 
 const offlineDcaClient = new DcaClientFactory()
 	.setConnection(CONNECTION["devnet"])
@@ -64,17 +63,14 @@ describe("Test scenarios of Zebec Dca", async () => {
 				const startTime = new BN(nowInSec());
 				const amount = new Amount(new BN("500"));
 				const frequency = new BN(10);
-				const clusterTime = await getClusterTime(CONNECTION["devnet"]);
-				const differenceBetweenWallClock = startTime.sub(new BN(clusterTime));
-				const startTimeWithCluster = startTime.add(differenceBetweenWallClock);
 				const {
-					data: { signature: signature1, dcaAccount: dcaAccount },
+					data: { signature: signature1, dcaAccount: dcaAccount, request },
 					status: status1,
 				} = await offlineDcaClient.initialize(
 					ownerKeypair.publicKey,
 					DEVNET_BASEMINT,
 					DEVNET_QUOTEMINT,
-					startTimeWithCluster,
+					startTime,
 					amount,
 					frequency,
 				);
@@ -86,7 +82,7 @@ describe("Test scenarios of Zebec Dca", async () => {
 				dcaAccounts[0] = dcaAccount;
 				expect(dcaInfo.authority.toString()).to.equal(ownerKeypair.publicKey.toString());
 				expect(dcaInfo.dcaAmount.toString()).to.equal(amount.toString());
-				expect(dcaInfo.startTime.toString()).to.equal(startTimeWithCluster.toString());
+				expect(dcaInfo.startTime.toString()).to.equal(request.startTime.toString());
 				expect(dcaInfo.frequency.toString()).to.equal(frequency.toString());
 				expect(dcaInfo.mintAddressTo.toString()).to.equal(DEVNET_QUOTEMINT.toString());
 				expect(dcaInfo.mintAddressFrom.toString()).to.equal(DEVNET_BASEMINT.toString());
@@ -101,7 +97,7 @@ describe("Test scenarios of Zebec Dca", async () => {
 			try {
 				const dcaAccount = await DcaAccount.getDcaAccountInfo(CONNECTION["devnet"], dcaAccounts[0], "confirmed");
 				const clusterTime = await getClusterTime(CONNECTION["devnet"]);
-				const differenceInTime = dcaAccount.startTime.sub(new BN(clusterTime));
+				const differenceInTime = dcaAccount.startTime.sub(clusterTime);
 				console.log("delay seconds", Number(differenceInTime) - 18);
 				await delay((Number(differenceInTime) - 18) * 1000);
 				const _ = await offlineDcaClient.swap(
@@ -123,7 +119,7 @@ describe("Test scenarios of Zebec Dca", async () => {
 				const vault = await findVaultAddress(ownerKeypair.publicKey);
 				let dcaVaultBalanceBeforeSwap = await getBalanceOfSplToken(DEVNET_BASEMINT, vault, CONNECTION["devnet"]);
 				const clusterTime = await getClusterTime(CONNECTION["devnet"]);
-				const differenceInTime = dcaAccount.startTime.sub(new BN(clusterTime));
+				const differenceInTime = dcaAccount.startTime.sub(clusterTime);
 				console.log("delay seconds", Number(differenceInTime) + 2);
 				await delay((Number(differenceInTime) + 2) * 1000);
 				const {
@@ -149,7 +145,7 @@ describe("Test scenarios of Zebec Dca", async () => {
 			try {
 				const dcaAccount = await DcaAccount.getDcaAccountInfo(CONNECTION["devnet"], dcaAccounts[0], "confirmed");
 				const clusterTime = await getClusterTime(CONNECTION["devnet"]);
-				const differenceInTime = dcaAccount.startTime.sub(new BN(clusterTime));
+				const differenceInTime = dcaAccount.startTime.sub(clusterTime);
 				console.log("delay second", Number(differenceInTime));
 				await delay(Number(differenceInTime) * 1000);
 				const {
@@ -210,7 +206,7 @@ describe("Test scenarios of Zebec Dca", async () => {
 			try {
 				const dcaAccount = await DcaAccount.getDcaAccountInfo(CONNECTION["devnet"], dcaAccounts[0], "confirmed");
 				const clusterTime = await getClusterTime(CONNECTION["devnet"]);
-				const differenceInTime = dcaAccount.startTime.sub(new BN(clusterTime));
+				const differenceInTime = dcaAccount.startTime.sub(clusterTime);
 				console.log("delay seconds", Number(differenceInTime));
 				await delay(Number(differenceInTime) * 1000);
 				const _ = await offlineDcaClient.swap(
@@ -228,7 +224,7 @@ describe("Test scenarios of Zebec Dca", async () => {
 		});
 		it("deposit token again to withdraw and check balances", async () => {
 			try {
-				const depositedAmount = new Amount(new BN("1000"));
+				const depositedAmount = new Amount(new BN("4000"));
 				const vault = await findVaultAddress(ownerKeypair.publicKey);
 				let senderBalanceBeforeDeposit = await getBalanceOfSplToken(
 					DEVNET_BASEMINT,
@@ -295,11 +291,6 @@ describe("Test scenarios of Zebec Dca", async () => {
 			try {
 				const depositedAmount = new Amount(new BN("1500"));
 				const vault = await findVaultAddress(ownerKeypair.publicKey);
-				let senderBalanceBeforeDeposit = await getBalanceOfSplToken(
-					WSOL_MINT,
-					ownerKeypair.publicKey,
-					CONNECTION["devnet"],
-				);
 				let senderNativeBalanceBeforeDeposit = await getNativeTokenBalance(
 					ownerKeypair.publicKey,
 					CONNECTION["devnet"],
@@ -309,22 +300,16 @@ describe("Test scenarios of Zebec Dca", async () => {
 					data: { signature },
 					status,
 				} = await offlineDcaClient.depositToken(ownerKeypair.publicKey, WSOL_MINT, depositedAmount);
-				let senderBalanceAfterDeposit = await getBalanceOfSplToken(
-					WSOL_MINT,
-					ownerKeypair.publicKey,
-					CONNECTION["devnet"],
-				);
+				let estimatedFee = await getEstimatedFee(CONNECTION["devnet"], signature);
 				let senderNativeBalanceAfterDeposit = await getNativeTokenBalance(ownerKeypair.publicKey, CONNECTION["devnet"]);
 				let dcaVaultBalanceAfterDeposit = await getBalanceOfSplToken(WSOL_MINT, vault, CONNECTION["devnet"]);
-				let expectedSenderBalanceAfterDeposit = senderBalanceBeforeDeposit.sub(depositedAmount);
+				let expectedSenderBalanceAfterDeposit = senderNativeBalanceBeforeDeposit
+					.sub(depositedAmount)
+					.sub(new BN(estimatedFee));
 				let expectedDcaVaultBalanceAfterDeposit = dcaVaultBalanceBeforeDeposit.add(depositedAmount);
-				console.log("senderBalanceBeforeDeposit", Number(senderBalanceBeforeDeposit.toString()) / 1000000000);
-				console.log("senderNativeBalanceBeforeDeposit", senderNativeBalanceBeforeDeposit.toString());
-				console.log("senderBalanceAfterDeposit", Number(senderBalanceAfterDeposit.toString()) / 1000000000);
-				console.log("senderNativeBalanceAfterDeposit", senderNativeBalanceAfterDeposit.toString());
-				expect(expectedSenderBalanceAfterDeposit).to.deep.equal(senderBalanceAfterDeposit);
+				expect(expectedSenderBalanceAfterDeposit.toString()).to.deep.equal(senderNativeBalanceAfterDeposit.toString());
 				expect(expectedDcaVaultBalanceAfterDeposit).to.deep.equal(dcaVaultBalanceAfterDeposit);
-				expect(status).to.equal(expectedStatus);
+				expect(status).to.deep.equal(expectedStatus);
 				expect(signature).not.to.be.undefined;
 			} catch (error) {
 				console.log(error instanceof SendTransactionError ? error.logs : error);
@@ -335,17 +320,14 @@ describe("Test scenarios of Zebec Dca", async () => {
 				const startTime = new BN(nowInSec());
 				const amount = new Amount(new BN("500"));
 				const frequency = new BN(10);
-				const clusterTime = await getClusterTime(CONNECTION["devnet"]);
-				const differenceBetweenWallClock = startTime.sub(new BN(clusterTime));
-				const startTimeWithCluster = startTime.add(differenceBetweenWallClock);
 				const {
-					data: { signature: signature1, dcaAccount: dcaAccount },
+					data: { signature: signature1, dcaAccount: dcaAccount, request },
 					status: status1,
 				} = await offlineDcaClient.initialize(
 					ownerKeypair.publicKey,
 					WSOL_MINT,
 					DEVNET_QUOTEMINT1,
-					startTimeWithCluster,
+					startTime,
 					amount,
 					frequency,
 				);
@@ -357,7 +339,7 @@ describe("Test scenarios of Zebec Dca", async () => {
 				dcaAccounts[0] = dcaAccount;
 				expect(dcaInfo.authority.toString()).to.equal(ownerKeypair.publicKey.toString());
 				expect(dcaInfo.dcaAmount.toString()).to.equal(amount.toString());
-				expect(dcaInfo.startTime.toString()).to.equal(startTimeWithCluster.toString());
+				expect(dcaInfo.startTime.toString()).to.equal(request.startTime.toString());
 				expect(dcaInfo.frequency.toString()).to.equal(frequency.toString());
 				expect(dcaInfo.mintAddressTo.toString()).to.equal(DEVNET_QUOTEMINT1.toString());
 				expect(dcaInfo.mintAddressFrom.toString()).to.equal(WSOL_MINT.toString());
@@ -372,7 +354,7 @@ describe("Test scenarios of Zebec Dca", async () => {
 			try {
 				const dcaAccount = await DcaAccount.getDcaAccountInfo(CONNECTION["devnet"], dcaAccounts[0], "confirmed");
 				const clusterTime = await getClusterTime(CONNECTION["devnet"]);
-				const differenceInTime = dcaAccount.startTime.sub(new BN(clusterTime));
+				const differenceInTime = dcaAccount.startTime.sub(clusterTime);
 				console.log("delay seconds", Number(differenceInTime) - 18);
 				await delay((Number(differenceInTime) - 18) * 1000);
 				const _ = await offlineDcaClient.swap(
@@ -394,7 +376,7 @@ describe("Test scenarios of Zebec Dca", async () => {
 				let dcaVaultBalanceBeforeSwap = await getBalanceOfSplToken(WSOL_MINT, vault, CONNECTION["devnet"]);
 				const dcaAccount = await DcaAccount.getDcaAccountInfo(CONNECTION["devnet"], dcaAccounts[0], "confirmed");
 				const clusterTime = await getClusterTime(CONNECTION["devnet"]);
-				const differenceInTime = dcaAccount.startTime.sub(new BN(clusterTime));
+				const differenceInTime = dcaAccount.startTime.sub(clusterTime);
 				console.log("delay seconds", Number(differenceInTime) + 2);
 				await delay((Number(differenceInTime) + 2) * 1000);
 				const {
@@ -420,7 +402,7 @@ describe("Test scenarios of Zebec Dca", async () => {
 			try {
 				const dcaAccount = await DcaAccount.getDcaAccountInfo(CONNECTION["devnet"], dcaAccounts[0], "confirmed");
 				const clusterTime = await getClusterTime(CONNECTION["devnet"]);
-				const differenceInTime = dcaAccount.startTime.sub(new BN(clusterTime));
+				const differenceInTime = dcaAccount.startTime.sub(clusterTime);
 				console.log("delay second", Number(differenceInTime));
 				await delay(Number(differenceInTime) * 1000);
 				const {
@@ -481,7 +463,7 @@ describe("Test scenarios of Zebec Dca", async () => {
 			try {
 				const dcaAccount = await DcaAccount.getDcaAccountInfo(CONNECTION["devnet"], dcaAccounts[0], "confirmed");
 				const clusterTime = await getClusterTime(CONNECTION["devnet"]);
-				const differenceInTime = dcaAccount.startTime.sub(new BN(clusterTime));
+				const differenceInTime = dcaAccount.startTime.sub(clusterTime);
 				console.log("delay seconds", Number(differenceInTime));
 				await delay(Number(differenceInTime) * 1000);
 				const _ = await offlineDcaClient.swap(
@@ -499,10 +481,9 @@ describe("Test scenarios of Zebec Dca", async () => {
 		});
 		it("deposit token again to withdraw and check balances", async () => {
 			try {
-				const depositedAmount = new Amount(new BN("1000"));
+				const depositedAmount = new Amount(new BN("4000"));
 				const vault = await findVaultAddress(ownerKeypair.publicKey);
-				let senderBalanceBeforeDeposit = await getBalanceOfSplToken(
-					WSOL_MINT,
+				let senderNativeBalanceBeforeDeposit = await getNativeTokenBalance(
 					ownerKeypair.publicKey,
 					CONNECTION["devnet"],
 				);
@@ -511,15 +492,14 @@ describe("Test scenarios of Zebec Dca", async () => {
 					data: { signature },
 					status,
 				} = await offlineDcaClient.depositToken(ownerKeypair.publicKey, WSOL_MINT, depositedAmount);
-				let senderBalanceAfterDeposit = await getBalanceOfSplToken(
-					WSOL_MINT,
-					ownerKeypair.publicKey,
-					CONNECTION["devnet"],
-				);
+				let senderNativeBalanceAfterDeposit = await getNativeTokenBalance(ownerKeypair.publicKey, CONNECTION["devnet"]);
 				let dcaVaultBalanceAfterDeposit = await getBalanceOfSplToken(WSOL_MINT, vault, CONNECTION["devnet"]);
-				let expectedSenderBalanceAfterDeposit = senderBalanceBeforeDeposit.sub(depositedAmount);
+				let estimatedFee = await getEstimatedFee(CONNECTION["devnet"], signature);
+				let expectedSenderBalanceAfterDeposit = senderNativeBalanceBeforeDeposit
+					.sub(depositedAmount)
+					.sub(new BN(estimatedFee));
 				let expectedDcaVaultBalanceAfterDeposit = dcaVaultBalanceBeforeDeposit.add(depositedAmount);
-				expect(expectedSenderBalanceAfterDeposit).to.deep.equal(senderBalanceAfterDeposit);
+				expect(expectedSenderBalanceAfterDeposit).to.deep.equal(senderNativeBalanceAfterDeposit);
 				expect(expectedDcaVaultBalanceAfterDeposit).to.deep.equal(dcaVaultBalanceAfterDeposit);
 				expect(status).to.equal(expectedStatus);
 				expect(signature).not.to.be.undefined;
@@ -537,10 +517,7 @@ describe("Test scenarios of Zebec Dca", async () => {
 					ownerKeypair.publicKey,
 					CONNECTION["devnet"],
 				);
-				let senderNativeBalanceBeforeWithdraw = await getNativeTokenBalance(
-					ownerKeypair.publicKey,
-					CONNECTION["devnet"],
-				);
+
 				const {
 					data: { signature: signature3 },
 					status: status3,
@@ -551,14 +528,6 @@ describe("Test scenarios of Zebec Dca", async () => {
 					ownerKeypair.publicKey,
 					CONNECTION["devnet"],
 				);
-				let senderNativeBalanceAfterWithdraw = await getNativeTokenBalance(
-					ownerKeypair.publicKey,
-					CONNECTION["devnet"],
-				);
-				console.log("senderBalanceBeforeWithdraw", Number(senderBalanceBeforeWithdraw.toString()) / 1000000000);
-				console.log("senderBalanceAfterWithdraw", Number(senderBalanceAfterWithdraw.toString()) / 1000000000);
-				console.log("senderNativeBalanceBeforeWithdraw", senderNativeBalanceBeforeWithdraw.toString());
-				console.log("senderNativeBalanceAfterWithdraw", senderNativeBalanceAfterWithdraw.toString());
 				let expectedSenderBalanceAfterDeposit = senderBalanceBeforeWithdraw.add(withdrawAmount);
 				let expectedDcaVaultBalanceAfterDeposit = dcaVaultBalanceBeforeWithdraw.sub(withdrawAmount);
 				expect(expectedSenderBalanceAfterDeposit).to.deep.equal(senderBalanceAfterWithdraw);

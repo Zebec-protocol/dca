@@ -10,13 +10,13 @@ import {
 	DEVNET_QUOTEMINT,
 	DEVNET_QUOTEMINT1,
 	expectedStatus,
-	nowInSec,
 	ownerKeypair,
 	WSOL_MINT,
 } from "./shared";
 import { BN } from "bn.js";
 import { CONNECTION } from "../../src/constants";
-import { findAssociatedTokenAddress, findVaultAddress } from "../../src/utils";
+import { findAssociatedTokenAddress, findVaultAddress, getClusterTime, nowInSec } from "../../src/utils";
+import { delay } from "../scenarios/utils";
 
 const wallet = {
 	publicKey: ownerKeypair.publicKey,
@@ -51,7 +51,7 @@ describe("Dca online client", async () => {
 				const {
 					data: { signature },
 					status,
-				} = await onlineDcaClient.depositToken(ownerKeypair.publicKey, DEVNET_BASEMINT, new Amount(new BN("1000")));
+				} = await onlineDcaClient.depositToken(wallet.publicKey, DEVNET_BASEMINT, new Amount(new BN("1000")));
 				expect(status).to.equal(expectedStatus);
 				expect(signature).not.to.be.undefined;
 			} catch (error) {
@@ -82,8 +82,10 @@ describe("Dca online client", async () => {
 		});
 		it("swap()", async () => {
 			try {
-				console.log(dcaAccounts[0].toString());
 				const dcaAccount = await DcaAccount.getDcaAccountInfo(CONNECTION["devnet"], dcaAccounts[0], "confirmed");
+				const clusterTime = await getClusterTime(CONNECTION["devnet"]);
+				const differenceBetweenWallClock = dcaAccount.startTime.sub(clusterTime);
+				await delay((Number(differenceBetweenWallClock) + 2) * 1000);
 				const {
 					data: { signature: signature2 },
 					status: status2,
@@ -157,8 +159,10 @@ describe("Dca online client", async () => {
 		});
 		it("swap()", async () => {
 			try {
-				console.log(dcaAccounts[0].toString());
 				const dcaAccount = await DcaAccount.getDcaAccountInfo(CONNECTION["devnet"], dcaAccounts[0], "confirmed");
+				const clusterTime = await getClusterTime(CONNECTION["devnet"]);
+				const differenceBetweenWallClock = dcaAccount.startTime.sub(clusterTime);
+				await delay((Number(differenceBetweenWallClock) + 2) * 1000);
 				const {
 					data: { signature: signature2 },
 					status: status2,

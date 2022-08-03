@@ -29,8 +29,6 @@ export const dcaAccountD = new PublicKey("BHxXyHLgnpF74WsQ6EmCCW7RiSPmG4xergDhin
 export const dcaAccountE = new PublicKey("orUXAjqurh3E74HZFZQeTdTDfkMpHjV4pojESc9Fk7R");
 export const dcaAccountF = new PublicKey("4amiyFvRLjTPRxZA2UMPx9okSeNWALh9ALMwj9VA9P2R");
 
-export const nowInSec = () => Math.floor(Date.now() / 1000);
-
 export async function sleep(msec: number) {
 	return new Promise((resolve) => setTimeout(resolve, msec));
 }
