@@ -1,11 +1,26 @@
 import BN from "bn.js";
 
-import { Liquidity, LiquidityPoolKeysV4, Percent, Token, TokenAmount } from "@raydium-io/raydium-sdk";
-import { Commitment, Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
+import {
+	Liquidity,
+	LiquidityPoolKeysV4,
+	Percent,
+	Token,
+	TokenAmount,
+} from "@raydium-io/raydium-sdk";
+import {
+	Commitment,
+	Connection,
+	Keypair,
+	PublicKey,
+	Transaction,
+} from "@solana/web3.js";
 
 import { CONNECTION } from "../constants";
 import { DcaInstruction } from "../instruction";
-import { Amount, DcaAccount, MintAmount } from "../models";
+import {
+	Amount,
+	DcaAccount,
+} from "../models";
 import {
 	fetchPoolKeys,
 	fetchPoolKeysDevnet,
@@ -34,14 +49,14 @@ export abstract class DcaClient {
 		this._preflightCommitment = params.preflightCommitment;
 	}
 
-	protected async makeDepositTokenTransaction(source: PublicKey, tokenMint: PublicKey, amount: Amount | MintAmount) {
+	protected async makeDepositTokenTransaction(source: PublicKey, tokenMint: PublicKey, amount: Amount) {
 		try {
 			const vault = await findVaultAddress(source);
 			const sourceTokenAccount = await findAssociatedTokenAddress(source, tokenMint);
 			const vaultTokenAccount = await findAssociatedTokenAddress(vault, tokenMint);
 
 			let txn = new Transaction().add(
-				DcaInstruction.depositToken(source, vault, tokenMint, sourceTokenAccount, vaultTokenAccount, amount),
+				DcaInstruction.depositToken(source, vault, tokenMint, sourceTokenAccount, vaultTokenAccount, amount.toBN()),
 			);
 
 			return {
@@ -57,7 +72,7 @@ export abstract class DcaClient {
 		tokenMintFrom: PublicKey,
 		tokenMintTo: PublicKey,
 		startTime: BN,
-		dcaAmount: Amount | MintAmount,
+		dcaAmount: Amount,
 		frequency: BN,
 	) {
 		try {
@@ -79,7 +94,7 @@ export abstract class DcaClient {
 					vaultTokenAccountTo,
 					dcaAccount.publicKey,
 					startTimeWithCluster,
-					dcaAmount,
+					dcaAmount.toBN(),
 					frequency,
 				),
 			);
@@ -100,7 +115,7 @@ export abstract class DcaClient {
 		}
 	}
 
-	protected async makeWithdrawTokenTransaction(source: PublicKey, tokenMint: PublicKey, amount: Amount | MintAmount) {
+	protected async makeWithdrawTokenTransaction(source: PublicKey, tokenMint: PublicKey, amount: Amount) {
 		try {
 			const vault = await findVaultAddress(source);
 			const sourceTokenAccount = await findAssociatedTokenAddress(source, tokenMint);

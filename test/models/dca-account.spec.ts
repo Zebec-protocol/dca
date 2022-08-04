@@ -1,6 +1,9 @@
 import { BN } from "bn.js";
 import { expect } from "chai";
-import { describe, it } from "mocha";
+import {
+	describe,
+	it,
+} from "mocha";
 
 import { PublicKey } from "@solana/web3.js";
 

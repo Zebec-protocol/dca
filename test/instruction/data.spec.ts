@@ -1,9 +1,17 @@
-import BN from "bn.js";
-import { Buffer } from "buffer";
-import { expect } from "chai";
-import { describe, it } from "mocha";
+// import BN from "bn.js";
+// import { Buffer } from "buffer";
+// import { expect } from "chai";
+// import { describe, it } from "mocha";
 
-import { DepositTokenData, InitializeData, SwapData, WithdrawTokenData } from "../../src/instruction/data";
+import { BN } from "bn.js";
+import { expect } from "chai";
+
+import {
+	DepositTokenData,
+	InitializeData,
+	SwapData,
+	WithdrawTokenData,
+} from "../../src/instruction/data";
 
 describe("Instruction data unit test: ", () => {
 	describe("DepositTokenData object when encoded", () => {

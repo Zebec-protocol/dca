@@ -1,10 +1,19 @@
 import BN from "bn.js";
 
 import { WalletNotConnectedError } from "@solana/wallet-adapter-base";
-import { Commitment, Connection, PublicKey, Signer, Transaction } from "@solana/web3.js";
+import {
+	Commitment,
+	Connection,
+	PublicKey,
+	Signer,
+	Transaction,
+} from "@solana/web3.js";
 
-import { Amount, MintAmount } from "../models";
-import { DcaClient, IWalletAdapter } from "./base";
+import { Amount } from "../models";
+import {
+	DcaClient,
+	IWalletAdapter,
+} from "./base";
 
 export class DcaOnlineClient extends DcaClient {
 	private _wallet: IWalletAdapter;
@@ -56,7 +65,7 @@ export class DcaOnlineClient extends DcaClient {
 	/**
 	 * Deposit non-native token in dca program vault
 	 */
-	async depositToken(owner: PublicKey, mint: PublicKey, amount: Amount | MintAmount) {
+	async depositToken(owner: PublicKey, mint: PublicKey, amount: Amount) {
 		try {
 			const { transaction } = await this.makeDepositTokenTransaction(owner, mint, amount);
 
@@ -81,7 +90,7 @@ export class DcaOnlineClient extends DcaClient {
 		tokenMintFrom: PublicKey,
 		tokenMintTo: PublicKey,
 		startTime: BN,
-		dcaAmount: Amount | MintAmount,
+		dcaAmount: Amount,
 		frequency: BN,
 	) {
 		try {
@@ -112,7 +121,7 @@ export class DcaOnlineClient extends DcaClient {
 	/**
 	 * Withdraw non-native token from vault
 	 */
-	async withdrawToken(owner: PublicKey, mint: PublicKey, amount: Amount | MintAmount) {
+	async withdrawToken(owner: PublicKey, mint: PublicKey, amount: Amount) {
 		try {
 			const { transaction } = await this.makeWithdrawTokenTransaction(owner, mint, amount);
 
