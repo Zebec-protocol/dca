@@ -1,10 +1,29 @@
+import { BN } from "bn.js";
 import { expect } from "chai";
-import { describe, it } from "mocha";
+import {
+	describe,
+	it,
+} from "mocha";
 
-import { PublicKey, SendTransactionError, Transaction } from "@solana/web3.js";
+import {
+	PublicKey,
+	SendTransactionError,
+	Transaction,
+} from "@solana/web3.js";
 
 import { DcaClientFactory } from "../../src/clients";
-import { Amount, DcaAccount } from "../../src/models";
+import { CONNECTION } from "../../src/constants";
+import {
+	Amount,
+	DcaAccount,
+} from "../../src/models";
+import {
+	findAssociatedTokenAddress,
+	findVaultAddress,
+	getClusterTime,
+	nowInSec,
+} from "../../src/utils";
+import { delay } from "../scenarios/utils";
 import {
 	DEVNET_BASEMINT,
 	DEVNET_QUOTEMINT,
@@ -13,24 +32,16 @@ import {
 	ownerKeypair,
 	WSOL_MINT,
 } from "./shared";
-import { BN } from "bn.js";
-import { CONNECTION } from "../../src/constants";
-import { findAssociatedTokenAddress, findVaultAddress, getClusterTime, nowInSec } from "../../src/utils";
-import { delay } from "../scenarios/utils";
 
 const wallet = {
 	publicKey: ownerKeypair.publicKey,
 	async signTransaction(transaction: Transaction) {
-		const existingPair = transaction.signatures.filter((pair) => pair.signature !== null);
-		transaction.sign(ownerKeypair);
-		existingPair.forEach((pair) => {
-			if (pair.signature) transaction.addSignature(pair.publicKey, pair.signature);
-		});
+		transaction.partialSign(ownerKeypair);
 		return transaction;
 	},
 	async signAllTransactions(transactions: Transaction[]) {
 		transactions.forEach(async (txn) => {
-			txn.sign(ownerKeypair);
+			txn.partialSign(ownerKeypair);
 		});
 		return transactions;
 	},

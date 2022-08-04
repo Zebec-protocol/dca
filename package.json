@@ -42,9 +42,7 @@
 		"bignumber.js": "^9.0.2",
 		"bn.js": "^5.2.1",
 		"borsh": "^0.7.0",
-		"buffer": "^6.0.3"
-	},
-	"peerDependencies": {
+		"buffer": "^6.0.3",
 		"react": "^18.2.0"
 	},
 	"devDependencies": {

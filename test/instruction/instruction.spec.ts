@@ -1,14 +1,30 @@
 import BN from "bn.js";
 import { expect } from "chai";
-import { describe, it } from "mocha";
+import {
+	describe,
+	it,
+} from "mocha";
 
-import { ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { AccountMeta, Keypair, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+import { SYSTEM_PROGRAM_ID } from "@raydium-io/raydium-sdk";
+import {
+	ASSOCIATED_TOKEN_PROGRAM_ID,
+	TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+import {
+	AccountMeta,
+	Keypair,
+	SystemProgram,
+	SYSVAR_RENT_PUBKEY,
+} from "@solana/web3.js";
 
 import { DCA_PROGRAM_ID } from "../../src/constants";
-import { DepositTokenData, InitializeData, SwapData, WithdrawTokenData } from "../../src/instruction/data";
+import {
+	DepositTokenData,
+	InitializeData,
+	SwapData,
+	WithdrawTokenData,
+} from "../../src/instruction/data";
 import { DcaInstruction } from "../../src/instruction/instruction";
-import { SYSTEM_PROGRAM_ID } from "@raydium-io/raydium-sdk";
 
 describe("DcaInstruction Test", () => {
 	const owner = new Keypair().publicKey;

@@ -128,9 +128,9 @@ describe("Dca offline client", async () => {
 					ownerKeypair.publicKey,
 					WSOL_MINT,
 					DEVNET_QUOTEMINT1,
-					new BN(nowInSec() + 1),
+					new BN(nowInSec() + 2),
 					new Amount(new BN("1000")),
-					new BN(3),
+					new BN("30"),
 				);
 				dcaAccounts[0] = dcaAccount;
 				expect(status1).to.equal(expectedStatus);
