@@ -6,6 +6,7 @@ import { PublicKey } from "@solana/web3.js";
 
 import { CONNECTION } from "../../src/constants";
 import { DcaAccount } from "../../src/models";
+import { DEVNET_BASEMINT, DEVNET_QUOTEMINT } from "../clients/shared";
 
 describe("DcaAccount Test", () => {
 	const devnet_authority = new PublicKey("8zERi9tcZPfNPfqLMWvnyFEabArGLzkw491smyg3RvVk");
@@ -22,7 +23,9 @@ describe("DcaAccount Test", () => {
 			expect(actual.dcaAmount).to.be.instanceOf(BN);
 			expect(actual.frequency).to.be.instanceOf(BN);
 			expect(actual.mintAddressFrom).to.be.instanceOf(PublicKey);
+			expect(actual.mintAddressFrom).to.deep.equal(DEVNET_BASEMINT);
 			expect(actual.mintAddressTo).to.be.instanceOf(PublicKey);
+			expect(actual.mintAddressTo).to.deep.equal(DEVNET_QUOTEMINT);
 			expect(actual.state).to.be.true;
 		});
 	});
